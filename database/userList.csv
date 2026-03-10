@@ -1,0 +1,2 @@
+id,email,password_hash,role,created_at
+1,testresident@gmail.com,password123,resident,2026-03-10 21:12:50.28031
