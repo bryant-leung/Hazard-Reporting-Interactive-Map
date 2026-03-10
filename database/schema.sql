@@ -2,6 +2,8 @@
 -- Table 1: Users Table
 -- Everything here follow the Entity Relationship Diagram we submitted as a group for milestone 3.
 
+CREATE Database IF NOT EXISTS future_frameworks; 
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY, -- serial to auto increment for tidier tables
     email VARCHAR(255) UNIQUE NOT NULL,
