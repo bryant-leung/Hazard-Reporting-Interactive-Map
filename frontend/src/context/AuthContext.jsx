@@ -1,3 +1,4 @@
+// Store the current user temporarily in memory while they use the site.
 import { createContext, useState, useContext } from 'react'
 
 const AuthContext = createContext()
