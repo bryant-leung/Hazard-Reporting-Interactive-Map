@@ -19,7 +19,7 @@ function Navbar() {
       backgroundColor: '#1a1a2e',
       color: 'white'
     }}>
-      <h2 style={{ margin: 0 }}>Public Space Safety</h2>
+      <h2 style={{ margin: 0 }}>W S W N T G ?</h2>
       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
         {user ? (
           <>
