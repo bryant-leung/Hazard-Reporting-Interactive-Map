@@ -1,22 +1,45 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/common/Navbar'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ResidentDashboard from './pages/ResidentDashboard'
 import StaffDashboard from './pages/StaffDashboard'
 
+function AppRoutes() {
+  const { user } = useAuth()
+
+  return (
+    <Routes>
+      <Route path="/" element={
+        user ? (
+          user.role === 'staff'
+            ? <Navigate to="/staff" />
+            : <Navigate to="/resident" />
+        ) : (
+          <LoginPage />
+        )
+      } />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/resident" element={
+        user && user.role === 'resident' ? <ResidentDashboard /> : <Navigate to="/" />
+      } />
+      <Route path="/staff" element={
+        user && user.role === 'staff' ? <StaffDashboard /> : <Navigate to="/" />
+      } />
+    </Routes>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <main style={{ padding: '20px' }}>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/resident" element={<ResidentDashboard />} />
-          <Route path="/staff" element={<StaffDashboard />} />
-        </Routes>
-      </main>
+      <AuthProvider>
+        <Navbar />
+        <main style={{ padding: '20px' }}>
+          <AppRoutes />
+        </main>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
