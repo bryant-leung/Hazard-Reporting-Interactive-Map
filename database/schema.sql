@@ -4,8 +4,6 @@
 
 CREATE Database IF NOT EXISTS future_frameworks;
 
-USE future_frameworks;
-
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY, -- serial to auto increment for tidier tables
     email VARCHAR(255) UNIQUE NOT NULL,
