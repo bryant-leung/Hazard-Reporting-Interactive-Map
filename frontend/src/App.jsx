@@ -29,7 +29,7 @@ function AppRoutes() {
         user && user.role === 'staff' ? <StaffDashboard /> : <Navigate to="/" />
       } />
        <Route path="/map" element={
-        user && user.role === 'both' ? <Map /> : <Navigate to="/" />
+        user ? <Map /> : <Navigate to="/" />
       } />
     </Routes>
   )
