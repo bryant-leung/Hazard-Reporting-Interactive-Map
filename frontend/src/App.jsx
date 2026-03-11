@@ -6,6 +6,8 @@ import RegisterPage from './pages/RegisterPage'
 import ResidentDashboard from './pages/ResidentDashboard'
 import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
+import ReportHazardPage from './pages/ReportHazardPage'
+
 
 function AppRoutes() {
   const { user } = useAuth()
@@ -24,6 +26,9 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/resident" element={
         user && user.role === 'resident' ? <ResidentDashboard /> : <Navigate to="/" />
+      } />
+      <Route path="/report-hazard" element={
+        user && user.role === 'resident' ? <ReportHazardPage /> : <Navigate to="/" />
       } />
       <Route path="/staff" element={
         user && user.role === 'staff' ? <StaffDashboard /> : <Navigate to="/" />

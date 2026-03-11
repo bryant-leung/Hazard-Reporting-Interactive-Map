@@ -1,12 +1,12 @@
 // Import userAuth for permissions etc, and useEffect to only build map after HTML is on page. 
 import { useEffect } from 'react';
-import { userAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
-import "../style.css";
+import "../../styles.css";
 
 const MapComponent = () => {
-    const { user } = userAuth();
+    const { user } = useAuth();
 
     useEffect(() => {
         if (!user) return; // authenticate user before building map
