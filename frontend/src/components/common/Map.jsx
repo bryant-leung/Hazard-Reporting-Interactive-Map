@@ -1,9 +1,11 @@
 // Import userAuth for permissions etc, and useEffect to only build map after HTML is on page. 
+
 import { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
+// import "../../style.css";
 
 const MapComponent = () => {
     const { user } = useAuth();
@@ -19,29 +21,59 @@ const MapComponent = () => {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
+    function submitForm(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const reportData = new FormData(form);
+
+        fetch("http://localhost:5000/report", {
+            method: "POST",
+            body: reportData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Report submitted successfully!");
+        })
+        .catch(error => {
+            console.error("Error submitting report:", error);
+        });
+    }
+
     function addMarker(e) {
         if (currentMarker) {
             map.removeLayer(currentMarker);
         }
         currentMarker = L.marker(e.latlng).addTo(map);
         currentMarker.bindPopup(`
-            <form action="./process.js" method="POST">
+            <form id="report">
                 <label for="category">Category:</label><br>
                 <select name="category" id="category">
-                    <option value="volvo">Road</option>
-                    <option value="saab">Pole</option>
+                    <option value="road">Road</option>
+                    <option value="pole">Pole</option>
                 </select><br>
                 <label for="description">Description:</label><br>
-                <input type="text" id="description" name="description" /><br><br>
+                <input type="text" id="description" name="description" /><br>
+                <label for="uploadImage">Upload Image:</label><br>
+                <input type="file" id="uploadImage" name="uploadImage" accept="image/*" /><br><br>
                 <input type="hidden" name="lat" value="${e.latlng.lat}" />
                 <input type="hidden" name="lng" value="${e.latlng.lng}" />
                 <button type="submit">Submit report</button>
             </form>
         `).openPopup();
+
     }
 
     map.on('click', addMarker);
+    map.on("popupopen", function () {
+            const reportForm = document.getElementById("report");
 
+            if (reportForm) {
+                reportForm.addEventListener("submit", submitForm);
+            }
+        });
+    
+    
     navigator.geolocation.getCurrentPosition(function (position) {
     var lat = position.coords.latitude;
     var long = position.coords.longitude;
