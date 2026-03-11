@@ -29,6 +29,7 @@ pool.query("SELECT NOW()", (err, res) => {
 // allow residents and admins to create accounts
 app.post("/register", async (req, res) => {
     const { email, password, role } = req.body;
+    console.log("Login Request Received:", { email, password });
 
     try {
         await pool.query(
