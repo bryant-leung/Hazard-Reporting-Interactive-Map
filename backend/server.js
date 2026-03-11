@@ -42,6 +42,26 @@ app.post("/register", async (req, res) => {
         res.status(500).send("Database Error: " + err.message);
     }
 });
+// Login function that checks email and password against the database and returns user data (including role) if successful
+// In a nutshell authenticates users and provides role for RBAC.
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        // Query the database for the user
+        const result = await pool.query(
+            "SELECT id, email, role FROM users WHERE email = $1 AND password_hash = $2",
+            [email, password]
+        );
+
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]); // Send back the user data (id, email, role)
+        } else {
+            res.status(401).send("Invalid credentials");
+        }
+    } catch (err) {
+        res.status(500).send("Server error");
+    }
+});
 
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards

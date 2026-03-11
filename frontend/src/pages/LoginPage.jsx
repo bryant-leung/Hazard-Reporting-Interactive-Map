@@ -8,26 +8,52 @@ function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = async (e) => { // Added 'async' for 'await'
+    e.preventDefault();
 
-    // Temporary mock login - replace with real API call later
-    if (email && password) {
-      const role = email.includes('staff') ? 'staff' : 'resident'
-      login({ email, role })
-      navigate(role === 'staff' ? '/staff' : '/resident')
+    try {
+      // 1. Send login credentials to Node.js backend
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (response.ok) {
+        // 2. Parse the user data (including the 'role' from Supabase)
+        const userData = await response.json();
+
+        // 3. Update the AuthContext
+        // userData will look like { id: 1, email: '...', role: 'staff' }
+        login(userData);
+
+        // 4. RBAC redirection based on role
+        // Use the actual 'role' column from our database to decide where they go
+        console.log(`User logged in as: ${userData.role}`);
+        navigate(userData.role === 'staff' ? '/staff' : '/resident');
+        
+      } else {
+        // Handle errors
+        const errorText = await response.text();
+        alert(`Login Failed: ${errorText}`);
+      }
+    } catch (error) {
+      // Handle network errors 
+      console.error("Connection Error:", error);
+      alert("Could not connect to the server. Is the backend running?");
     }
   }
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto' }}>
-      <h1>Login</h1>
+      <h1>Birmingham Safety Login</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
           style={{ padding: '10px', fontSize: '16px' }}
         />
         <input
@@ -35,6 +61,7 @@ function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
           style={{ padding: '10px', fontSize: '16px' }}
         />
         <button type="submit" style={{
@@ -47,7 +74,9 @@ function LoginPage() {
           borderRadius: '4px'
         }}>Login</button>
       </form>
-      <p>Don't have an account? <Link to="/register">Register here</Link></p>
+      <p style={{ marginTop: '15px' }}>
+        Don't have an account? <Link to="/register">Register here</Link>
+      </p>
     </div>
   )
 }
