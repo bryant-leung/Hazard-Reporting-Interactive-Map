@@ -25,8 +25,18 @@ const MapComponent = () => {
         }
         currentMarker = L.marker(e.latlng).addTo(map);
         currentMarker.bindPopup(`
-            <div>
-            </div>
+            <form action="./process.js" method="POST">
+                <label for="category">Category:</label><br>
+                <select name="category" id="category">
+                    <option value="volvo">Road</option>
+                    <option value="saab">Pole</option>
+                </select><br>
+                <label for="description">Description:</label><br>
+                <input type="text" id="description" name="description" /><br><br>
+                <input type="hidden" name="lat" value="${e.latlng.lat}" />
+                <input type="hidden" name="lng" value="${e.latlng.lng}" />
+                <button type="submit">Submit report</button>
+            </form>
         `).openPopup();
     }
 
