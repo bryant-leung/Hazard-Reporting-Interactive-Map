@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, highContrast, toggleHighContrast } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -21,6 +21,14 @@ function Navbar() {
     }}>
       <h2 style={{ margin: 0 }}>W S W N T G ?</h2>
       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <button onClick={toggleHighContrast} style={{
+          background: 'none',
+          border: '1px solid white',
+          color: 'white',
+          padding: '5px 10px',
+          cursor: 'pointer',
+          borderRadius: '4px'
+        }}>{highContrast ? 'Standard Mode' : 'High Contrast'}</button>
         {user ? (
           <>
             <span>{user.email} ({user.role})</span>

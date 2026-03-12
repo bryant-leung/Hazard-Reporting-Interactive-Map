@@ -2,6 +2,42 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+body.high-contrast {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+body.high-contrast nav {
+    background-color: #000 !important;
+    border-bottom: 2px solid #fff;
+}
+
+body.high-contrast a {
+    color: #ff0 !important;
+}
+
+body.high-contrast button {
+    background-color: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast input,
+body.high-contrast select,
+body.high-contrast textarea {
+    background-color: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast table,
+body.high-contrast th,
+body.high-contrast td {
+    border-color: #fff !important;
+    color: #fff !important;
+    background-color: #000 !important;
+}
+
 #map{
     height: 850px;
     width: 100%;
