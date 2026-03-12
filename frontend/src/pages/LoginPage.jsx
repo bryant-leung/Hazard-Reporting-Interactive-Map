@@ -8,41 +8,42 @@ function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => { // Added 'async' for 'await'
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      // 1. Send login credentials to Node.js backend
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+  try {
+    // 1. Ask the backend to check Supabase for this user
+    // Inside handleSubmit in LoginPage.jsx
+const response = await fetch('http://localhost:3000/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    email: email,      
+    password: password 
+  })
+});
 
-      if (response.ok) {
-        // 2. Parse the user data (including the 'role' from Supabase)
-        const userData = await response.json();
+    if (response.ok) {
+      const userData = await response.json(); 
+      // userData now contains the data from your SQL table
 
-        // 3. Update the AuthContext
-        // userData will look like { id: 1, email: '...', role: 'staff' }
-        login(userData);
+      // 2. Save this real data into AuthContext
+      login(userData);
 
-        // 4. RBAC redirection based on role
-        // Use the actual 'role' column from our database to decide where they go
-        console.log(`User logged in as: ${userData.role}`);
-        navigate(userData.role === 'staff' ? '/staff' : '/resident');
-        
+      // 3. RBAC: Redirect based on the actual database role
+      if (userData.role === 'staff') {
+        navigate('/staff');
       } else {
-        // Handle errors
-        const errorText = await response.text();
-        alert(`Login Failed: ${errorText}`);
+        navigate('/resident');
       }
-    } catch (error) {
-      // Handle network errors 
-      console.error("Connection Error:", error);
-      alert("Could not connect to the server. Is the backend running?");
+    } else {
+      alert("Login failed: User not found or incorrect password.");
     }
+  } catch (error) {
+    console.error("Connection error:", error);
+    alert("Backend is offline. Make sure 'node server.js' is running!");
   }
+};
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto' }}>

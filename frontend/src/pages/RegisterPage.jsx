@@ -11,10 +11,11 @@ function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // Added 'async' here
     e.preventDefault()
     setError('')
 
+    // Validation
     if (!email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
@@ -30,9 +31,33 @@ function RegisterPage() {
       return
     }
 
-    // Temporary mock register - replace with real API call later
-    login({ email, role })
-    navigate(role === 'staff' ? '/staff' : '/resident')
+    try {
+      const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password, // This goes to 'password_hash' in your server.js
+          role: role
+        }),
+      });
+
+      if (response.ok) {
+        // Removed former mock user logic
+        // Log in automatically and redirect
+        login({ email, role });
+        alert("Registration Successful!");
+        navigate(role === 'staff' ? '/staff' : '/resident');
+      } else {
+        const errorText = await response.text();
+        setError(errorText || "Registration failed. Try again.");
+      }
+    } catch (err) {
+      console.error("Connection error:", err);
+      setError("Could not connect to the server. Is the backend running?");
+    }
   }
 
   return (
@@ -52,6 +77,7 @@ function RegisterPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{ padding: '10px', fontSize: '16px' }}
+          required
         />
         <input
           type="password"
@@ -59,6 +85,7 @@ function RegisterPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={{ padding: '10px', fontSize: '16px' }}
+          required
         />
         <input
           type="password"
@@ -66,6 +93,7 @@ function RegisterPage() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           style={{ padding: '10px', fontSize: '16px' }}
+          required
         />
 
         <label style={{ fontSize: '16px' }}>Account Type:</label>

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS hazards (
     reporter_user_id INTEGER NOT NULL REFERENCES users(id),
     category VARCHAR (100) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL, -- status of whether hazard is in progress or fixed
+    status VARCHAR(50) NOT NULL DEFAULT 'Reported', -- status of whether hazard is in progress or fixed
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
