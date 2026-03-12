@@ -8,6 +8,15 @@ import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
 import ReportHazardPage from './pages/ReportHazardPage'
 
+const ProtectedRoute = ({children, allowedRole}) => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/" replace />;
+  if (allowedRole && user.role !== allowedRole) {
+    return <Navigate to={user.role === 'staff' ? '/staff' : '/resident'} replace />;
+  }
+  return children;
+}
+
 
 function AppRoutes() {
   const { user } = useAuth()
