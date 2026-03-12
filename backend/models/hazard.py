@@ -11,3 +11,5 @@ class Hazard(Base):
     description = Column(Text, nullable=False)
     status = Column(String(50), nullable=False, default="reported")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    latitude = Column(Float, nullable = False)
+    longitude = Column (Float, nullable = False)
