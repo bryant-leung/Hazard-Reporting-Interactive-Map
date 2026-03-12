@@ -32,7 +32,9 @@ CREATE TABLE IF NOT EXISTS hazards (
     category hazard_category NOT NULL,
     description TEXT NOT NULL,
     status hazard_status NOT NULL DEFAULT 'Reported', -- status of whether hazard is in progress or fixed
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    latitude FLOAT NOT NULL CHECK (latitude BETWEEN -90 AND 90), 
+    longitude FLOAT NOT NULL CHECK (longitude BETWEEN -180 AND 180)
 );
 
 -- Table 3: Status Table
