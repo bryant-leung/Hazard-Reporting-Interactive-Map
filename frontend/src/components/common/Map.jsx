@@ -22,12 +22,11 @@ const MapComponent = () => {
     }).addTo(map);
 
     function submitForm(event) {
-        event.preventDefault();
-
+        event.preventDefault(); //prevents webpage from reloading
         const form = event.target;
         const reportData = new FormData(form);
 
-        fetch("http://localhost:5000/report", {
+        fetch("http://localhost:3000/report", {
             method: "POST",
             body: reportData
         })
@@ -45,7 +44,8 @@ const MapComponent = () => {
             map.removeLayer(currentMarker);
         }
         currentMarker = L.marker(e.latlng).addTo(map);
-        currentMarker.bindPopup(`
+        currentMarker.bindPopup( //form for reporting hazard, also sends longitutde and latitude
+            `
             <form id="report">
                 <label for="category">Category:</label><br>
                 <select name="category" id="category">
@@ -60,20 +60,17 @@ const MapComponent = () => {
                 <input type="hidden" name="lng" value="${e.latlng.lng}" />
                 <button type="submit">Submit report</button>
             </form>
-        `).openPopup();
-
-    }
-
-    map.on('click', addMarker);
-    map.on("popupopen", function () {
+        `
+        );
+        currentMarker.on("popupopen", () => { // listener for submitting form
             const reportForm = document.getElementById("report");
-
-            if (reportForm) {
-                reportForm.addEventListener("submit", submitForm);
-            }
+            reportForm.addEventListener("submit", submitForm);
         });
-    
-    
+        currentMarker.openPopup();
+        }
+
+    map.on("click", addMarker);
+
     navigator.geolocation.getCurrentPosition(function (position) {
     var lat = position.coords.latitude;
     var long = position.coords.longitude;
