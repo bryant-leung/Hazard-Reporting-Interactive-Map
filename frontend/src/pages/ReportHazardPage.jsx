@@ -1,25 +1,54 @@
 import { useState } from "react"
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from "react-router-dom"
+
 
 // simple page where residents can submit a hazard report
 function ReportHazardPage() {
 
+  const { user } = useAuth() // Activate the import and get the current user from AuthContext
+  const navigate = useNavigate()
   // storing the form data in state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [location, setLocation] = useState("")
+  const [loading, setLoading] = useState(false)
 
   // this runs when the form is submitted
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
-    // for now we are just printing the data
-    // later this will be sent to the backend
-    console.log("Hazard Report Submitted:")
-    console.log("Title:", title)
-    console.log("Description:", description)
-    console.log("Location:", location)
+    // Data construction matching format in sql table
+    const hazardData = {
+      reporter_user_id: user.id,
+      category: title,
+      description: description,
+      location: location
+    }
 
-    alert("Hazard report submitted (demo)")
+    try {
+      const response = await fetch("http://localhost:3000/report-hazard", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(hazardData)
+      })
+
+      if (response.ok) {
+        alert("Hazard reported successfully!")
+        navigate("/resident") // Redirect back to resident dashboard after submission
+      } else {
+        const errorMsg = await response.text();
+        alert("Failed to report hazard. Please try again.")
+      }
+  } catch (error) {
+      console.error("Error reporting hazard:", error)
+      alert("Error connecting to backend.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

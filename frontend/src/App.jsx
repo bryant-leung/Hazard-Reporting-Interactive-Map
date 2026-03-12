@@ -8,6 +8,7 @@ import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
 import ReportHazardPage from './pages/ReportHazardPage'
 
+// Reinforced RBAC 
 const ProtectedRoute = ({children, allowedRole}) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/" replace />;
