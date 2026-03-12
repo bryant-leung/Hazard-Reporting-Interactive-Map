@@ -11,7 +11,7 @@ function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => { // Added 'async' here
+  const handleSubmit = async (e) => { 
     e.preventDefault()
     setError('')
 
@@ -39,7 +39,7 @@ function RegisterPage() {
         },
         body: JSON.stringify({
           email: email,
-          password: password, // This goes to 'password_hash' in your server.js
+          password: password,
           role: role
         }),
       });
