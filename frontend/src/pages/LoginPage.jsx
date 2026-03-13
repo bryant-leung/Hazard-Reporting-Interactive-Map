@@ -25,7 +25,9 @@ const response = await fetch('http://localhost:3000/login', {
 
     if (response.ok) {
       const userData = await response.json(); 
-      // userData now contains the data from your SQL table
+      
+      // Save token in browser so report page can find
+      localStorage.setItem('token', userData.token)
 
       // 2. Save this real data into AuthContext
       login(userData);
