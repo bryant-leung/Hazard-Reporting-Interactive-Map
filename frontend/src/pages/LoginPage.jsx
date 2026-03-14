@@ -8,45 +8,46 @@ function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      // ask backend to check if login is valid
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          password: password
-        })
-      });
+  try {
+    // Ask the backend to check Supabase for this user
+    // Inside handleSubmit in LoginPage.jsx
+const response = await fetch('http://localhost:3000/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    email: email,      
+    password: password 
+  })
+});
 
-      if (response.ok) {
-        const userData = await response.json();
+    if (response.ok) {
+      const userData = await response.json(); 
+      
+      // Save token in browser so report page can find
+      localStorage.setItem('token', userData.token)
 
-        // save token so other pages can use it later
-        localStorage.setItem('token', userData.token)
+      // Save this real data into AuthContext
+      login(userData);
 
-        // save logged in user in auth context
-        login(userData);
-
-        // redirect based on role
-        if (userData.role === 'staff') {
-          navigate('/staff');
-        } else {
-          navigate('/resident');
-        }
+      // RBAC: Redirect based on the actual database role
+      if (userData.role === 'staff') {
+        navigate('/staff');
       } else {
-        alert("Login failed: User not found or incorrect password.");
+        navigate('/resident');
       }
-    } catch (error) {
-      console.error("Connection error:", error);
-      alert("Backend is offline. Make sure backend is running!");
+    } else {
+      alert("Login failed: User not found or incorrect password.");
     }
-  };
+  } catch (error) {
+    console.error("Connection error:", error);
+    alert("Backend is offline. Make sure 'node server.js' is running!");
+  }
+};
 
-  // let user continue without logging in
+// let user continue without logging in
   const handleGuestLogin = () => {
     login({
       email: 'guest@guest.com',
@@ -59,7 +60,6 @@ function LoginPage() {
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto' }}>
       <h1>Birmingham Safety Login</h1>
-
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <input
           type="email"
@@ -69,7 +69,6 @@ function LoginPage() {
           required
           style={{ padding: '10px', fontSize: '16px' }}
         />
-
         <input
           type="password"
           placeholder="Password"
@@ -78,21 +77,15 @@ function LoginPage() {
           required
           style={{ padding: '10px', fontSize: '16px' }}
         />
-
-        <button
-          type="submit"
-          style={{
-            padding: '10px',
-            fontSize: '16px',
-            backgroundColor: '#1a1a2e',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
-        >
-          Login
-        </button>
+        <button type="submit" style={{
+          padding: '10px',
+          fontSize: '16px',
+          backgroundColor: '#1a1a2e',
+          color: 'white',
+          border: 'none',
+          cursor: 'pointer',
+          borderRadius: '4px'
+        }}>Login</button>
       </form>
 
       {/* guest option for viewing hazards without an account */}
@@ -112,7 +105,7 @@ function LoginPage() {
       >
         Continue as Guest
       </button>
-
+      
       <p style={{ marginTop: '15px' }}>
         Don't have an account? <Link to="/register">Register here</Link>
       </p>
