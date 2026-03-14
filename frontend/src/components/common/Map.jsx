@@ -69,8 +69,10 @@ const MapComponent = () => {
         currentMarker.openPopup();
         }
 
+        if (user.role!=="guest") {
     map.on("click", addMarker);
-
+        }
+        
     navigator.geolocation.getCurrentPosition(function (position) {
     var lat = position.coords.latitude;
     var long = position.coords.longitude;

@@ -22,13 +22,16 @@ const ProtectedRoute = ({children, allowedRole}) => {
 function AppRoutes() {
   const { user } = useAuth()
 
+  
   return (
     <Routes>
       <Route path="/" element={
         user ? (
           user.role === 'staff'
             ? <Navigate to="/staff" />
-            : <Navigate to="/resident" />
+            : user.role === 'resident'
+              ? <Navigate to="/resident" />
+              : <Navigate to="/map" />
         ) : (
           <LoginPage />
         )

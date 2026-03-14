@@ -11,11 +11,11 @@ function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => { 
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    // Validation
+    // basic validation
     if (!email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
@@ -45,8 +45,7 @@ function RegisterPage() {
       });
 
       if (response.ok) {
-        // Removed former mock user logic
-        // Log in automatically and redirect
+        // log in automatically after successful registration
         login({ email, role });
         alert("Registration Successful!");
         navigate(role === 'staff' ? '/staff' : '/resident');
@@ -58,6 +57,16 @@ function RegisterPage() {
       console.error("Connection error:", err);
       setError("Could not connect to the server. Is the backend running?");
     }
+  }
+
+  // allow guest to continue without making an account
+  const handleGuestLogin = () => {
+    login({
+      email: 'guest@guest.com',
+      role: 'guest'
+    });
+
+    navigate('/map');
   }
 
   return (
@@ -79,6 +88,7 @@ function RegisterPage() {
           style={{ padding: '10px', fontSize: '16px' }}
           required
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -87,6 +97,7 @@ function RegisterPage() {
           style={{ padding: '10px', fontSize: '16px' }}
           required
         />
+
         <input
           type="password"
           placeholder="Confirm Password"
@@ -106,16 +117,39 @@ function RegisterPage() {
           <option value="staff">Council Staff</option>
         </select>
 
-        <button type="submit" style={{
+        <button
+          type="submit"
+          style={{
+            padding: '10px',
+            fontSize: '16px',
+            backgroundColor: '#1a1a2e',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            borderRadius: '4px'
+          }}
+        >
+          Register
+        </button>
+      </form>
+
+      {/* guest option */}
+      <button
+        onClick={handleGuestLogin}
+        style={{
+          marginTop: '10px',
           padding: '10px',
           fontSize: '16px',
-          backgroundColor: '#1a1a2e',
-          color: 'white',
+          backgroundColor: '#e0e0e0',
+          color: 'black',
           border: 'none',
           cursor: 'pointer',
-          borderRadius: '4px'
-        }}>Register</button>
-      </form>
+          borderRadius: '4px',
+          width: '100%'
+        }}
+      >
+        Continue as Guest
+      </button>
 
       <p>Already have an account? <Link to="/">Login here</Link></p>
     </div>
