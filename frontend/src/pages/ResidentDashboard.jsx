@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom"
+import Map from "../components/common/Map"
 
 // resident dashboard page
 // this is where residents will see the map and hazard list
@@ -12,7 +13,12 @@ function ResidentDashboard() {
 
       <h1>Resident Dashboard</h1>
 
-      <p>Heatmap and hazard list will go here</p>
+      <p>hazard list will go here</p>
+
+      {/* map added here so residents can view hazards on dashboard */}
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+        <Map />
+      </div>
 
       {/* button that takes the user to the hazard report page */}
       <button onClick={() => navigate("/report-hazard")}>
