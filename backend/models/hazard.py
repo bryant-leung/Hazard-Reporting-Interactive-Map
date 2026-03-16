@@ -9,7 +9,7 @@ class Hazard(Base):
     reporter_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     category = Column(String, nullable=False)
     description = Column(Text, nullable=False)
-    status = Column(String(50), nullable=False, default="reported")
+    status = Column(String(50), nullable=False, default="reported") #noticed an issue in casing, Reported in database schema, reported here
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     latitude = Column(Float, nullable = False)
     longitude = Column (Float, nullable = False)

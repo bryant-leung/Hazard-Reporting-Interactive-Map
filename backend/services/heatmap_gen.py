@@ -18,11 +18,8 @@ def get_heatmap_data(db: Session, start_time: Optional[datetime], end_time: Opti
 
     hazards = query.all()
 
-    return [
-        {
+    return [{
             "lat": hazard.latitude,
             "lng": hazard.longitude,
             "value": 1 # to be updated when we add a severity score to the database schema
-        }
-        for hazard in hazards
-    ]
+        } for hazard in hazards ]
