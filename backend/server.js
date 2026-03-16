@@ -86,11 +86,11 @@ app.post("/login", async (req, res) => {
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards
 app.post("/report-hazard", verifyToken, async (req, res) => {
-    const { reporter_user_id, category, description, latitude, longitude } = req.body;
+    const { reporter_user_id, category, description, latitude, longitude, location_name } = req.body;
     try {
         const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-            [reporter_user_id, category, description, "Reported"]
+            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+            [reporter_user_id, category, description, "Reported", latitude, longitude, location_name]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
@@ -103,7 +103,7 @@ app.post("/report-hazard", verifyToken, async (req, res) => {
 app.get("/admin/view-hazards", async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT h.id, h.category, h.description, h.status, u.email as reporter_email
+            SELECT h.id, h.category, h.description, h.status, h.latitude, h.longitude, h.location_name, u.email as reporter_email
             FROM hazards h
             JOIN users u ON h.reporter_user_id = u.id
             ORDER BY h.created_at DESC

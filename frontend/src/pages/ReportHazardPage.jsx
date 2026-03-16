@@ -24,15 +24,18 @@ function ReportHazardPage() {
 
     // Get jwt token before allowing report submission
     const token = localStorage.getItem("token");
+
     // Data construction matching format in sql table
     const hazardData = {
       reporter_user_id: user.id,
       category: category,
       description: description, 
       location_name: location,   
-      latitude: parseFloat(latitude),  
-      longitude: parseFloat(longitude) 
+      latitude: latitude ? parseFloat(latitude) : null,  
+      longitude: longitude ? parseFloat(longitude) : null 
     }
+
+    console.log("Hazard Data being sent to backend:", hazardData);
 
     try {
       const response = await fetch("http://localhost:3000/report-hazard", {
@@ -125,10 +128,6 @@ function ReportHazardPage() {
         </div>
         
         <br />
-
-        <div>
-
-        </div>
 
         <div>
           <label>Description</label>
