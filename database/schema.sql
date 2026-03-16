@@ -1,5 +1,4 @@
--- 1. Do is used instead for safety to avoid errors if the type already exists
--- aka ENUM creation caused a bug just now so this is the loophole around it
+-- 1. Create Enums safely (only if they don't already exist)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'hazard_category') THEN
@@ -30,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
--- 3. Hazards Table 
+-- 3. Hazards Table (Includes Lat/Long and Enums)
 CREATE TABLE IF NOT EXISTS hazards (
     id SERIAL PRIMARY KEY,
     reporter_user_id INTEGER NOT NULL REFERENCES users(id),
@@ -52,3 +51,10 @@ CREATE TABLE IF NOT EXISTS status_updates (
     note TEXT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+ALTER TABLE hazards 
+ADD COLUMN IF NOT EXISTS latitude FLOAT,
+ADD COLUMN IF NOT EXISTS longitude FLOAT;
+
+ALTER TABLE hazards 
+ADD COLUMN IF NOT EXISTS status hazard_status DEFAULT 'Reported';

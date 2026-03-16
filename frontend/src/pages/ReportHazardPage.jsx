@@ -9,11 +9,13 @@ function ReportHazardPage() {
   const navigate = useNavigate()
   
   // storing the form data in state
-  const [title, setTitle] = useState("") // Keeping title as per your request, though category is used for the database
+  const [title, setTitle] = useState("") 
   const [description, setDescription] = useState("")
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
   const [category, setCategory] = useState("Infrastructure"); // Initialise state with first enum option
+  const [latitude, setLatitude] = useState("")
+  const [longitude, setLongitude] = useState("")
 
   // this runs when the form is submitted
   const handleSubmit = async (e) => {
@@ -25,8 +27,11 @@ function ReportHazardPage() {
     // Data construction matching format in sql table
     const hazardData = {
       reporter_user_id: user.id,
-      category: category, // Using the enum state
-      description: `Location: ${location}. Details: ${description}` // Collating location into description
+      category: category,
+      description: description, 
+      location_name: location,   
+      latitude: parseFloat(latitude),  
+      longitude: parseFloat(longitude) 
     }
 
     try {
@@ -93,6 +98,37 @@ function ReportHazardPage() {
         </div>
 
         <br />
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div>
+            <label>Latitude</label><br />
+            <input 
+              type="text" 
+              step="any" 
+              value={latitude} 
+              onChange={(e) => setLatitude(e.target.value)} 
+              placeholder="e.g. 52.4862"
+              required 
+            />
+          </div>
+          <div>
+            <label>Longitude</label><br />
+            <input 
+              type="text" 
+              step="any" 
+              value={longitude} 
+              onChange={(e) => setLongitude(e.target.value)} 
+              placeholder="e.g. -1.8904"
+              required 
+            />
+          </div>
+        </div>
+        
+        <br />
+
+        <div>
+
+        </div>
 
         <div>
           <label>Description</label>
