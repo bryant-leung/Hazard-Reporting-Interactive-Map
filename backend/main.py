@@ -6,6 +6,7 @@ from services.heatmap_gen import get_heatmap_data
 from services.add_report import add_report
 from database import Base, engine, get_db
 from models import User, Hazard, StatusUpdate
+import schemas
 
 app = FastAPI()
 

@@ -20,6 +20,8 @@ function ReportHazardPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Get jwt token before allowing report submission
+    const token = localStorage.getItem("token");
     // Data construction matching format in sql table
     const hazardData = {
       reporter_user_id: user.id,
@@ -31,7 +33,9 @@ function ReportHazardPage() {
       const response = await fetch("http://localhost:3000/report-hazard", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          // Sends token to backend
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(hazardData)
       })

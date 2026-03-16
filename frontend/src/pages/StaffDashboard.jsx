@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import Map from "../components/common/Map"
 
 // staff dashboard page
 // for now this is just frontend logic with sample data
@@ -71,11 +72,12 @@ function StaffDashboard() {
   return (
     <div>
       <h1>Staff Dashboard</h1>
+          
+      <p>Hazard list will go here</p>
+       <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+  <Map />
+</div>
 
-      {/* other teammate features can still go here later */}
-      <p>Heatmap and hazard list will go here</p>
-
-      {/* staff can also report a hazard like residents */}
       <button onClick={() => navigate("/report-hazard")}>
         Report Hazard
       </button>

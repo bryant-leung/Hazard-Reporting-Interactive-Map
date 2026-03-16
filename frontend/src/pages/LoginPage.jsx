@@ -12,7 +12,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    // 1. Ask the backend to check Supabase for this user
+    // Ask the backend to check Supabase for this user
     // Inside handleSubmit in LoginPage.jsx
 const response = await fetch('http://localhost:3000/login', {
   method: 'POST',
@@ -25,12 +25,14 @@ const response = await fetch('http://localhost:3000/login', {
 
     if (response.ok) {
       const userData = await response.json(); 
-      // userData now contains the data from your SQL table
+      
+      // Save token in browser so report page can find
+      localStorage.setItem('token', userData.token)
 
-      // 2. Save this real data into AuthContext
+      // Save this real data into AuthContext
       login(userData);
 
-      // 3. RBAC: Redirect based on the actual database role
+      // RBAC: Redirect based on the actual database role
       if (userData.role === 'staff') {
         navigate('/staff');
       } else {
@@ -44,6 +46,16 @@ const response = await fetch('http://localhost:3000/login', {
     alert("Backend is offline. Make sure 'node server.js' is running!");
   }
 };
+
+// let user continue without logging in
+  const handleGuestLogin = () => {
+    login({
+      email: 'guest@guest.com',
+      role: 'guest'
+    });
+
+    navigate('/map');
+  };
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto' }}>
@@ -75,6 +87,25 @@ const response = await fetch('http://localhost:3000/login', {
           borderRadius: '4px'
         }}>Login</button>
       </form>
+
+      {/* guest option for viewing hazards without an account */}
+      <button
+        onClick={handleGuestLogin}
+        style={{
+          marginTop: '10px',
+          padding: '10px',
+          fontSize: '16px',
+          backgroundColor: '#e0e0e0',
+          color: 'black',
+          border: 'none',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          width: '100%'
+        }}
+      >
+        Continue as Guest
+      </button>
+      
       <p style={{ marginTop: '15px' }}>
         Don't have an account? <Link to="/register">Register here</Link>
       </p>

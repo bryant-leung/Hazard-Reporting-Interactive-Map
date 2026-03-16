@@ -22,13 +22,16 @@ const ProtectedRoute = ({children, allowedRole}) => {
 function AppRoutes() {
   const { user } = useAuth()
 
+  
   return (
     <Routes>
       <Route path="/" element={
         user ? (
           user.role === 'staff'
             ? <Navigate to="/staff" />
-            : <Navigate to="/resident" />
+            : user.role === 'resident'
+              ? <Navigate to="/resident" />
+              : <Navigate to="/map" />
         ) : (
           <LoginPage />
         )
@@ -38,8 +41,8 @@ function AppRoutes() {
         user && user.role === 'resident' ? <ResidentDashboard /> : <Navigate to="/" />
       } />
       <Route path="/report-hazard" element={
-        user && user.role === 'resident' ? <ReportHazardPage /> : <Navigate to="/" />
-      } />
+  user && (user.role === 'resident' || user.role === 'staff') ? <ReportHazardPage /> : <Navigate to="/" />
+} />
       <Route path="/staff" element={
         user && user.role === 'staff' ? <StaffDashboard /> : <Navigate to="/" />
       } />
