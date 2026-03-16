@@ -1,9 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 function Navbar() {
   const { user, logout, highContrast, toggleHighContrast } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleLogout = () => {
     logout()
@@ -17,11 +18,11 @@ function Navbar() {
       alignItems: 'center',
       padding: '0 24px',
       height: '56px',
-      backgroundColor: '#1a1a2e',
+      backgroundColor: '#0f4c3a',
       color: 'white',
       boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
     }}>
-      <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '0.05em', color: '#f59e0b' }}>
+      <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '0.05em', color: '#10b981' }}>
         W S W N T G ?
       </span>
 
@@ -42,10 +43,10 @@ function Navbar() {
           <>
             <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
               {user.email}
-              <span style={{
+              <span className="role-badge" style={{
                 marginLeft: '6px',
-                background: '#f59e0b',
-                color: '#1a1a2e',
+                background: '#10b981',
+                color: '#fff',
                 padding: '2px 7px',
                 borderRadius: '10px',
                 fontSize: '11px',
@@ -69,8 +70,8 @@ function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>Login</Link>
-            <Link to="/register" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>Register</Link>
+            {location.pathname !== '/' && <Link to="/" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>Login</Link>}
+            {location.pathname !== '/register' && <Link to="/register" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>Register</Link>}
           </>
         )}
       </div>

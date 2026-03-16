@@ -1,15 +1,15 @@
 :root {
-  --primary: #1a1a2e;
-  --primary-hover: #252545;
-  --accent: #f59e0b;
-  --accent-dark: #d97706;
-  --bg: #f3f4f6;
+  --primary: #0f4c3a;
+  --primary-hover: #1a6650;
+  --accent: #10b981;
+  --accent-dark: #059669;
+  --bg: #f0fdf4;
   --surface: #ffffff;
   --text: #1f2937;
   --text-muted: #6b7280;
   --danger: #ef4444;
-  --success: #22c55e;
-  --border: #e5e7eb;
+  --success: #10b981;
+  --border: #d1fae5;
   --radius: 8px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
   --shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -282,6 +282,15 @@ body.high-contrast .auth-footer {
 body.high-contrast nav {
   background-color: #000 !important;
   border-bottom: 2px solid #fff;
+}
+
+body.high-contrast nav span {
+  color: #fff !important;
+}
+
+body.high-contrast .role-badge {
+  background-color: #000 !important;
+  border: 1px solid #fff !important;
 }
 
 body.high-contrast a {
