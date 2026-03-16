@@ -86,10 +86,10 @@ app.post("/login", async (req, res) => {
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards
 app.post("/report-hazard", verifyToken, async (req, res) => {
-    const { reporter_user_id, category, description } = req.body;
+    const { reporter_user_id, category, description, latitude, longitude } = req.body;
     try {
         const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, description, status) VALUES ($1, $2, $3, $4) RETURNING *",
+            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
             [reporter_user_id, category, description, "Reported"]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
