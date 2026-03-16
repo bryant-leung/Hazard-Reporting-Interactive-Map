@@ -2,31 +2,25 @@ import { useState } from "react"
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from "react-router-dom"
 
-// simple page where residents can submit a hazard report
 function ReportHazardPage() {
-
-  const { user } = useAuth() // Activate the import and get the current user from AuthContext
+  const { user } = useAuth()
   const navigate = useNavigate()
-  
-  // storing the form data in state
-  const [title, setTitle] = useState("") // Keeping title as per your request, though category is used for the database
+
+  const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
-  const [category, setCategory] = useState("Infrastructure"); // Initialise state with first enum option
+  const [category, setCategory] = useState("Infrastructure")
 
-  // this runs when the form is submitted
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    // Get jwt token before allowing report submission
-    const token = localStorage.getItem("token");
-    // Data construction matching format in sql table
+    const token = localStorage.getItem("token")
     const hazardData = {
       reporter_user_id: user.id,
-      category: category, // Using the enum state
-      description: `Location: ${location}. Details: ${description}` // Collating location into description
+      category,
+      description: `Location: ${location}. Details: ${description}`
     }
 
     try {
@@ -34,7 +28,6 @@ function ReportHazardPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Sends token to backend
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(hazardData)
@@ -42,13 +35,11 @@ function ReportHazardPage() {
 
       if (response.ok) {
         alert("Hazard reported successfully!")
-        navigate("/resident") // Redirect back to resident dashboard after submission
+        navigate("/resident")
       } else {
-        const errorMsg = await response.text();
         alert("Failed to report hazard. Please try again.")
       }
     } catch (error) {
-      console.error("Error reporting hazard:", error)
       alert("Error connecting to backend.")
     } finally {
       setLoading(false)
@@ -56,75 +47,67 @@ function ReportHazardPage() {
   }
 
   return (
-    <div>
-      <h2>Report a Hazard</h2>
-
-      {/* hazard report form */}
-      <form onSubmit={handleSubmit}>
-
-        <div>
-          <label>Hazard Category</label>
-          <br />
-          {/* Choice selection box matching SQL ENUMs */}
-          <select 
-            value={category} 
-            onChange={(e) => setCategory(e.target.value)}
-            style={{ padding: "5px", width: "100%" }}
-          >
-            <option value="Infrastructure">Infrastructure</option>
-            <option value="Blocked Access">Blocked Access</option>
-            <option value="Safety Hazard">Safety Hazard</option>
-            <option value="Vandalism">Vandalism</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <br />
-
-        <div>
-          <label>Hazard Title</label>
-          <br />
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Description</label>
-          <br />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Location</label>
-          <br />
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            required
-          />
-        </div>
-
-        <br />
-
-        {/* Loading state added to button for better UX */}
-        <button type="submit" disabled={loading}>
-          {loading ? "Submitting..." : "Submit Report"}
+    <div className="page" style={{ maxWidth: '640px' }}>
+      <div className="page-header">
+        <h1 className="page-title">Report a Hazard</h1>
+        <button className="btn btn-ghost btn-sm" style={{ width: 'auto' }} onClick={() => navigate(-1)}>
+          ← Back
         </button>
+      </div>
 
-      </form>
+      <div className="card">
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Hazard Category</label>
+            <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="Blocked Access">Blocked Access</option>
+              <option value="Safety Hazard">Safety Hazard</option>
+              <option value="Vandalism">Vandalism</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Hazard Title</label>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="e.g. Large pothole on main road"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-textarea"
+              placeholder="Describe the hazard in detail..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Location</label>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="e.g. Corner of High St and Park Rd"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-accent" disabled={loading}>
+            {loading ? "Submitting..." : "Submit Report"}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

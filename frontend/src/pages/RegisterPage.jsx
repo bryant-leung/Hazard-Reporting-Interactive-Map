@@ -15,17 +15,14 @@ function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    // basic validation
     if (!email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
     }
-
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
-
     if (password.length < 6) {
       setError('Password must be at least 6 characters')
       return
@@ -34,124 +31,97 @@ function RegisterPage() {
     try {
       const response = await fetch('http://localhost:3000/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-          role: role
-        }),
-      });
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role }),
+      })
 
       if (response.ok) {
-        // log in automatically after successful registration
-        login({ email, role });
-        alert("Registration Successful!");
-        navigate(role === 'staff' ? '/staff' : '/resident');
+        login({ email, role })
+        navigate(role === 'staff' ? '/staff' : '/resident')
       } else {
-        const errorText = await response.text();
-        setError(errorText || "Registration failed. Try again.");
+        const errorText = await response.text()
+        setError(errorText || 'Registration failed. Try again.')
       }
     } catch (err) {
-      console.error("Connection error:", err);
-      setError("Could not connect to the server. Is the backend running?");
+      setError('Could not connect to the server. Is the backend running?')
     }
   }
 
-  // allow guest to continue without making an account
   const handleGuestLogin = () => {
-    login({
-      email: 'guest@guest.com',
-      role: 'guest'
-    });
-
-    navigate('/map');
+    login({ email: 'guest@guest.com', role: 'guest' })
+    navigate('/resident')
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
-      <h1>Register</h1>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1>Create an account</h1>
+        <p className="auth-subtitle">Join Birmingham Safety Watch</p>
 
-      {error && (
-        <p style={{ color: 'red', backgroundColor: '#ffe0e0', padding: '10px', borderRadius: '4px' }}>
-          {error}
-        </p>
-      )}
+        {error && <div className="error-msg">{error}</div>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px' }}
-          required
-        />
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              className="form-input"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px' }}
-          required
-        />
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px' }}
-          required
-        />
+          <div className="form-group">
+            <label className="form-label">Confirm Password</label>
+            <input
+              className="form-input"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        <label style={{ fontSize: '16px' }}>Account Type:</label>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px' }}
-        >
-          <option value="resident">Resident</option>
-          <option value="staff">Council Staff</option>
-        </select>
+          <div className="form-group">
+            <label className="form-label">Account Type</label>
+            <select
+              className="form-select"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="resident">Resident</option>
+              <option value="staff">Council Staff</option>
+            </select>
+          </div>
 
-        <button
-          type="submit"
-          style={{
-            padding: '10px',
-            fontSize: '16px',
-            backgroundColor: '#1a1a2e',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: '4px'
-          }}
-        >
-          Register
+          <button type="submit" className="btn btn-primary">Create Account</button>
+        </form>
+
+        <div className="divider">or</div>
+
+        <button onClick={handleGuestLogin} className="btn btn-ghost">
+          Continue as Guest
         </button>
-      </form>
 
-      {/* guest option */}
-      <button
-        onClick={handleGuestLogin}
-        style={{
-          marginTop: '10px',
-          padding: '10px',
-          fontSize: '16px',
-          backgroundColor: '#e0e0e0',
-          color: 'black',
-          border: 'none',
-          cursor: 'pointer',
-          borderRadius: '4px',
-          width: '100%'
-        }}
-      >
-        Continue as Guest
-      </button>
-
-      <p>Already have an account? <Link to="/">Login here</Link></p>
+        <p className="auth-footer">
+          Already have an account? <Link to="/">Sign in</Link>
+        </p>
+      </div>
     </div>
   )
 }

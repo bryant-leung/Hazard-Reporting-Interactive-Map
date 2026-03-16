@@ -1,30 +1,31 @@
 import { useNavigate } from "react-router-dom"
 import Map from "../components/common/Map"
+import { useAuth } from "../context/AuthContext"
 
-// resident dashboard page
-// this is where residents will see the map and hazard list
 function ResidentDashboard() {
-
-  // useNavigate lets us move to another page
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   return (
-    <div>
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Hazard Map</h1>
+        {user?.role !== 'guest' && (
+          <button className="btn btn-accent" style={{ width: 'auto' }} onClick={() => navigate("/report-hazard")}>
+            + Report Hazard
+          </button>
+        )}
+      </div>
 
-      <h1>Resident Dashboard</h1>
-
-      <p>hazard list will go here</p>
-
-      {/* map added here so residents can view hazards on dashboard */}
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <Map />
       </div>
 
-      {/* button that takes the user to the hazard report page */}
-      <button onClick={() => navigate("/report-hazard")}>
-        Report Hazard
-      </button>
-
+      <div className="card">
+        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px' }}>
+          Hazard list coming soon.
+        </p>
+      </div>
     </div>
   )
 }

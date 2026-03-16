@@ -8,16 +8,6 @@ import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
 import ReportHazardPage from './pages/ReportHazardPage'
 
-// Reinforced RBAC 
-const ProtectedRoute = ({children, allowedRole}) => {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/" replace />;
-  if (allowedRole && user.role !== allowedRole) {
-    return <Navigate to={user.role === 'staff' ? '/staff' : '/resident'} replace />;
-  }
-  return children;
-}
-
 
 function AppRoutes() {
   const { user } = useAuth()
@@ -31,14 +21,14 @@ function AppRoutes() {
             ? <Navigate to="/staff" />
             : user.role === 'resident'
               ? <Navigate to="/resident" />
-              : <Navigate to="/map" />
+              : <Navigate to="/resident" />
         ) : (
           <LoginPage />
         )
       } />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/resident" element={
-        user && user.role === 'resident' ? <ResidentDashboard /> : <Navigate to="/" />
+        user && (user.role === 'resident' || user.role === 'guest') ? <ResidentDashboard /> : <Navigate to="/" />
       } />
       <Route path="/report-hazard" element={
   user && (user.role === 'resident' || user.role === 'staff') ? <ReportHazardPage /> : <Navigate to="/" />
