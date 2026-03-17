@@ -141,15 +141,28 @@ app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     }
 });
 
+// Update hazard status and log the change in status_updates for audit trail
 app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
-    const { status, description } = req.body;
+    const { status, description, note } = req.body;
+    const staff_id = req.user.id; 
+
     try {
+        const currentData = await pool.query("SELECT status FROM hazards WHERE id = $1", [id]);
+        if (currentData.rows.length === 0) return res.status(404).send("Hazard not found");
+        const old_status = currentData.rows[0].status;
+
         await pool.query(
             "UPDATE hazards SET status = $1, description = $2 WHERE id = $3",
             [status, description, id]
         );
-        res.json({ message: "Update successful" });
+
+        await pool.query(
+            "INSERT INTO status_updates (hazard_id, staff_user_id, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5)",
+            [id, staff_id, old_status, status, note || "Status updated via dashboard"]
+        );
+
+        res.json({ message: "Update successful and logged" });
     } catch (err) {
         res.status(500).send(err.message);
     }

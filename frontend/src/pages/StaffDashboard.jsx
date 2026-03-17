@@ -2,6 +2,9 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Map from "../components/common/Map"
 
+// staff dashboard page
+// for now this is just frontend logic with sample data
+// later we can connect it to the backend / database
 function StaffDashboard() {
   const navigate = useNavigate()
   const [reports, setReports] = useState([])
@@ -15,7 +18,7 @@ function StaffDashboard() {
 
   const token = localStorage.getItem("token")
 
-  // 1. Fetch real reports from the database on load
+  // Fetch real reports from the database on load
   useEffect(() => {
     fetchReports()
   }, [])
@@ -34,8 +37,11 @@ function StaffDashboard() {
     }
   }
 
-  // 2. Save changes to the database (PUT)
+  // save the edited report back into the reports array
   async function handleSave(id) {
+    // added a note prompt to fill the status_updates table when admin makes changes
+    const note = window.prompt("Enter a staff note for this status change:");
+    
     try {
       const response = await fetch(`http://localhost:3000/admin/update-hazard/${id}`, {
         method: "PUT",
@@ -44,14 +50,14 @@ function StaffDashboard() {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          hazard_category: editedCategory,
+          status: editedStatus,
           description: editedDescription,
-          status: editedStatus
+          note: note || "Updated via Staff Dashboard"
         })
       })
 
       if (response.ok) {
-        alert("Report updated in database!")
+        alert("Report updated and logged in database!")
         setEditingId(null)
         fetchReports() // Refresh the list
       }
@@ -60,7 +66,7 @@ function StaffDashboard() {
     }
   }
 
-  // 3. Remove from database (DELETE)
+  // remove a report from the list
   async function handleDelete(id) {
     if (!window.confirm("Are you sure you want to delete this report?")) return
 
@@ -78,9 +84,10 @@ function StaffDashboard() {
     }
   }
 
+  // open the edit form for one report
   function handleEditClick(report) {
     setEditingId(report.id)
-    setEditedCategory(report.category || report.hazard_category)
+    setEditedCategory(report.category)
     setEditedDescription(report.description)
     setEditedStatus(report.status)
   }
@@ -94,37 +101,73 @@ function StaffDashboard() {
         <Map />
       </div>
 
-      <h2>Manage Active Hazards</h2>
+      <h2 style={{ marginTop: "20px" }}>Manage Reports</h2>
+
       {reports.length === 0 ? (
-        <p>No active reports found in database.</p>
+        <p>No active reports at the moment.</p>
       ) : (
         reports.map((report) => (
-          <div key={report.id} style={{ border: "1px solid #ccc", padding: "15px", marginBottom: "10px", borderRadius: "8px" }}>
+          <div
+            key={report.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "12px",
+              marginTop: "12px",
+              borderRadius: "6px"
+            }}
+          >
             {editingId === report.id ? (
               <div>
-                <label>Status:</label>
-                <select value={editedStatus} onChange={(e) => setEditedStatus(e.target.value)}>
+                {/* edit form for one report */}
+                <div>
+                  <label>Status</label>
+                  <br />
+                  <select value={editedStatus} onChange={(e) => setEditedStatus(e.target.value)}>
                     <option value="Reported">Reported</option>
                     <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                </select>
-                <br /><br />
-                <label>Description:</label><br />
-                <textarea value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} style={{ width: "100%" }} />
-                <br /><br />
-                <button onClick={() => handleSave(report.id)}>Save to Database</button>
-                <button onClick={() => setEditingId(null)} style={{ marginLeft: "10px" }}>Cancel</button>
+                    <option value="Fixed">Fixed</option>
+                  </select>
+                </div>
+
+                <br />
+
+                <div>
+                  <label>Description</label>
+                  <br />
+                  <textarea
+                    value={editedDescription}
+                    onChange={(e) => setEditedDescription(e.target.value)}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+
+                <br />
+
+                <button onClick={() => handleSave(report.id)}>Save</button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Cancel
+                </button>
               </div>
             ) : (
               <div>
+                {/* normal report display */}
                 <p><strong>ID:</strong> {report.id}</p>
-                <p><strong>Category:</strong> {report.category || report.hazard_category}</p>
+                <p><strong>Category:</strong> {report.category}</p>
                 <p><strong>Description:</strong> {report.description}</p>
-                <p><strong>Status:</strong> <span style={{ color: report.status === "Resolved" ? "green" : "orange" }}>{report.status}</span></p>
+                <p><strong>Location:</strong> {report.location_name}</p>
+                <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange" }}>{report.status}</span></p>
                 <p><strong>Reporter:</strong> {report.reporter_email}</p>
-                
+
                 <button onClick={() => handleEditClick(report)}>Update Status</button>
-                <button onClick={() => handleDelete(report.id)} style={{ marginLeft: "10px", backgroundColor: "#ff4d4d", color: "white" }}>Delete</button>
+                <button
+                  onClick={() => handleDelete(report.id)}
+                  style={{ marginLeft: "10px", backgroundColor: "#ff4d4d", color: "white" }}
+                >
+                  Delete
+                </button>
               </div>
             )}
           </div>
