@@ -45,6 +45,9 @@ const MapComponent = () => {
 
         async function submitForm(event) {
             event.preventDefault(); 
+
+            
+
             const form = event.target;
             const formData = new FormData(form);
             const token = localStorage.getItem("token");
@@ -119,9 +122,31 @@ const MapComponent = () => {
             currentMarker.openPopup();
         }
 
-        if (user.role!=="guest") {
-            map.on("click", addMarker);
+       function handleMapClick(e) {
+    if (user.role === "guest") {
+        if (currentMarker) {
+            map.removeLayer(currentMarker);
         }
+
+        currentMarker = L.marker(e.latlng).addTo(map);
+        currentMarker
+            .bindPopup(`
+                <div>
+                    <b>Guest Access</b><br>
+                    You cannot report hazards while in guest mode.<br>
+                    Please log in or register.
+                </div>
+            `)
+            .openPopup();
+
+    } else {
+        addMarker(e); // normal behaviour for residents
+    }
+}
+
+map.on("click", handleMapClick);
+
+        
         
         return () => {
             map.remove();
@@ -131,8 +156,24 @@ const MapComponent = () => {
     if (!user) return <div>Please log in to view the map.</div>;
 
     return (
+    <>
+        {user.role === "guest" && (
+            <div
+                style={{
+                    backgroundColor: '#fff3cd',
+                    padding: '10px',
+                    marginBottom: '10px',
+                    borderRadius: '6px',
+                    color: '#856404'
+                }}
+            >
+                You are viewing as a guest. Hazard reporting is disabled. Please log in to submit a report.
+            </div>
+        )}
+
         <div id="map" style={{ height: "500px", width: "100%" }}></div>
-    );
+    </>
+);
 };
 
 export default MapComponent;
