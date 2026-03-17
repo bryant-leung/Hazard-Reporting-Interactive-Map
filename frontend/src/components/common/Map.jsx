@@ -4,16 +4,14 @@ import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
 
-// STAGE 1: The Absolute Marker Fix
-// This overrides Leaflet's broken internal path logic and sets a precise anchor point
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],           // Standard Leaflet size
-    iconAnchor: [12, 41],         // THIS PINPOINTS THE TIP: [Horizontal half, Vertical bottom]
-    popupAnchor: [1, -34],        // Where the popup opens relative to the pin
+    iconSize: [25, 41],           
+    iconAnchor: [12, 41],         
+    popupAnchor: [1, -34],        
     shadowSize: [41, 41]
 });
 
@@ -32,12 +30,11 @@ const MapComponent = () => {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // STAGE 2: Fetch and display retained markers
+        // display retained markers
         fetch("http://localhost:3000/heatmap-data")
             .then(response => response.json())
             .then(data => {
                 data.forEach(report => {
-                    // Using the fixed icon explicitly
                     L.marker([report.lat, report.lng])
                         .addTo(map)
                         .bindPopup(`<b>Reported Hazard</b>`);

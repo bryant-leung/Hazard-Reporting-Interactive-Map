@@ -89,7 +89,7 @@ app.post("/login", async (req, res) => {
 // Allows users to report hazards
 // Combined logic: This now supports both the Manual Form and the Python-style Map Pins
 app.post("/report-hazard", verifyToken, async (req, res) => {
-    const { user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
+    const { reporter_user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
     
     // Safety check: if location_name is missing (common with map pins), give it a default
     const finalLocation = location_name || "Map Pin Location";
@@ -97,7 +97,7 @@ app.post("/report-hazard", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(
             "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-            [user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation]
+            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
@@ -127,17 +127,41 @@ app.get("/heatmap-data", async (req, res) => {
 });
 
 // Allow admins to view all reported hazards with reporter info
-app.get("/admin/view-hazards", async (req, res) => {
+app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT h.id, h.category, h.description, h.status, h.latitude, h.longitude, h.location_name, u.email as reporter_email
             FROM hazards h
-            JOIN users u ON h.reporter_user_id = u.id
+            LEFT JOIN users u ON h.reporter_user_id = u.id
             ORDER BY h.created_at DESC
         `);
         res.json(result.rows);
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
+    }
+});
+
+app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
+    const { id } = req.params;
+    const { status, description } = req.body;
+    try {
+        await pool.query(
+            "UPDATE hazards SET status = $1, description = $2 WHERE id = $3",
+            [status, description, id]
+        );
+        res.json({ message: "Update successful" });
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+app.delete("/admin/delete-hazard/:id", verifyToken, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query("DELETE FROM hazards WHERE id = $1", [id]);
+        res.json({ message: "Deleted successfully" });
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 });
 
