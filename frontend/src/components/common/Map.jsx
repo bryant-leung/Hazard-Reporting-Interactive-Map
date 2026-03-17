@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
@@ -17,6 +17,8 @@ L.Icon.Default.mergeOptions({
 
 const MapComponent = () => {
     const { user } = useAuth();
+
+    const [clickedCoords, setClickedCoords] = useState(null);
 
     useEffect(() => {
         if (!user) return; 
@@ -123,6 +125,12 @@ const MapComponent = () => {
         }
 
        function handleMapClick(e) {
+
+        setClickedCoords({
+    lat: e.latlng.lat.toFixed(5),
+    lng: e.latlng.lng.toFixed(5)
+});
+
     if (user.role === "guest") {
         if (currentMarker) {
             map.removeLayer(currentMarker);
@@ -171,7 +179,28 @@ map.on("click", handleMapClick);
             </div>
         )}
 
-        <div id="map" style={{ height: "500px", width: "100%" }}></div>
+        <div style={{ position: "relative", height: "500px", width: "100%" }}>
+            <div id="map" style={{ height: "100%", width: "100%" }}></div>
+
+            {clickedCoords && (
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "10px",
+                        left: "10px",
+                        backgroundColor: "white",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        boxShadow: "0 1px 5px rgba(0,0,0,0.3)",
+                        fontSize: "14px",
+                        zIndex: 1000
+                    }}
+                >
+                    Latitude: {clickedCoords.lat} <br />
+                    Longitude: {clickedCoords.lng}
+                </div>
+            )}
+        </div>
     </>
 );
 };
