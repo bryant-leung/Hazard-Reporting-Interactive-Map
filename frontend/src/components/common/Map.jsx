@@ -154,7 +154,12 @@ const MapComponent = () => {
 
 map.on("click", handleMapClick);
 
-        
+       map.on("mousemove", (e) => {
+    setClickedCoords({
+        lat: e.latlng.lat.toFixed(5),
+        lng: e.latlng.lng.toFixed(5)
+    });
+}); 
         
         return () => {
             map.remove();
