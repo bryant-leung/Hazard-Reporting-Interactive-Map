@@ -1,21 +1,22 @@
 import { useState } from "react"
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom" // useLocation added to grab coordinates from dashboard
 
 // simple page where residents can submit a hazard report
 function ReportHazardPage() {
 
   const { user } = useAuth() // Activate the import and get the current user from AuthContext
   const navigate = useNavigate()
+  const locationState = useLocation() // Capture state passed from map click
   
   // storing the form data in state
   const [title, setTitle] = useState("") 
   const [description, setDescription] = useState("")
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
-  const [category, setCategory] = useState("Infrastructure"); // Initialise state with first enum option
-  const [latitude, setLatitude] = useState("")
-  const [longitude, setLongitude] = useState("")
+  const [category, setCategory] = useState("Infrastructure"); 
+  const [latitude, setLatitude] = useState(locationState.state?.lat || "") 
+  const [longitude, setLongitude] = useState(locationState.state?.lng || "") 
 
   // this runs when the form is submitted
   const handleSubmit = async (e) => {
@@ -25,24 +26,23 @@ function ReportHazardPage() {
     // Get jwt token before allowing report submission
     const token = localStorage.getItem("token");
 
-    // Data construction matching format in sql table
     const hazardData = {
-      reporter_user_id: user.id,
-      category: category,
+      user_id: user.id,                 
+      hazard_category: category,        
       description: description, 
       location_name: location,   
       latitude: latitude ? parseFloat(latitude) : null,  
       longitude: longitude ? parseFloat(longitude) : null 
     }
 
-    console.log("Hazard Data being sent to backend:", hazardData);
+    console.log("Hazard Data being sent to FastAPI:", hazardData);
 
     try {
-      const response = await fetch("http://localhost:3000/report-hazard", {
+      // Switched to Node.js Port 3000 
+      const response = await fetch(`http://localhost:3000/report-hazard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Sends token to backend
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(hazardData)
@@ -52,12 +52,12 @@ function ReportHazardPage() {
         alert("Hazard reported successfully!")
         navigate("/resident") // Redirect back to resident dashboard after submission
       } else {
-        const errorMsg = await response.text();
-        alert("Failed to report hazard. Please try again.")
+        const errorData = await response.json();
+        alert("Failed to report hazard: " + (errorData.message || "Server Error"));
       }
     } catch (error) {
       console.error("Error reporting hazard:", error)
-      alert("Error connecting to backend.")
+      alert("Error connecting to Node.js backend (Port 3000).")
     } finally {
       setLoading(false)
     }

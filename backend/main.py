@@ -20,13 +20,17 @@ def heatmap_params(
 ):
     return get_heatmap_data(db, start_time, end_time) #call the function to get the heatmap data from the database
 
-@app.post("/report")  #could edit this soon to add a fail case 
+@app.post("/report")
 def create_report(
-    user_id: int,
-    hazard_category: str,
-    description: str,
-    latitude: float,
-    longitude: float,
+    report: schemas.HazardCreate, # Use a schema to handle the JSON body
     db: Session = Depends(get_db)
 ):
-    return add_report(db, user_id, hazard_category, description, latitude, longitude)
+    return add_report(
+        db, 
+        user_id=report.user_id, 
+        hazard_category=report.hazard_category, 
+        description=report.description, 
+        latitude=report.latitude, 
+        longitude=report.longitude, 
+        location_name=report.location_name
+    )

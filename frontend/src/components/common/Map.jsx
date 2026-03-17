@@ -1,19 +1,15 @@
-// Import userAuth for permissions etc, and useEffect to only build map after HTML is on page. 
-
 import { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
-// import "../../style.css";
 
 const MapComponent = () => {
     const { user } = useAuth();
 
     useEffect(() => {
-        if (!user) return; // authenticate user before building map
-//https://www.youtube.com/watch?v=LxenV0YaX8M
-//https://gis.stackexchange.com/questions/180080/putting-marker-and-save-location-in-db-for-leaflet-draw
+        if (!user) return; 
+
     const map = L.map("map").setView([52.4506,-1.9306], 13);
     let currentMarker;
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -21,22 +17,42 @@ const MapComponent = () => {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
-    function submitForm(event) {
-        event.preventDefault(); //prevents webpage from reloading
+    async function submitForm(event) {
+        event.preventDefault(); 
         const form = event.target;
-        const reportData = new FormData(form);
+        const formData = new FormData(form);
+        const token = localStorage.getItem("token");
 
-        fetch("http://localhost:3000/report", {
-            method: "POST",
-            body: reportData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert("Report submitted successfully!");
-        })
-        .catch(error => {
+        const hazardData = {
+            user_id: user.id,
+            hazard_category: formData.get("hazard_category"),
+            description: formData.get("description"),
+            latitude: parseFloat(formData.get("latitude")),
+            longitude: parseFloat(formData.get("longitude")),
+            location_name: "Map Pin"
+        };
+
+        try {
+            const response = await fetch("http://localhost:3000/report-hazard", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(hazardData)
+            });
+
+            if (response.ok) {
+                alert("Report submitted successfully!");
+                map.closePopup();
+            } else {
+                const errorData = await response.json();
+                alert("Failed to report hazard: " + (errorData.message || "Server Error"));
+            }
+        } catch (error) {
             console.error("Error submitting report:", error);
-        });
+            alert("Error connecting to backend.");
+        }
     }
 
     function addMarker(e) {
@@ -44,25 +60,27 @@ const MapComponent = () => {
             map.removeLayer(currentMarker);
         }
         currentMarker = L.marker(e.latlng).addTo(map);
-        currentMarker.bindPopup( //form for reporting hazard, also sends longitutde and latitude
+        currentMarker.bindPopup( 
             `
             <form id="report">
-                <label for="category">Category:</label><br>
-                <select name="category" id="category">
-                    <option value="road">Road</option>
-                    <option value="pole">Pole</option>
+                <label for="hazard_category">Category:</label><br>
+                <select name="hazard_category" id="hazard_category">
+                    <option value="Infrastructure">Infrastructure</option>
+                    <option value="Blocked Access">Blocked Access</option>
+                    <option value="Safety Hazard">Safety Hazard</option>
+                    <option value="Vandalism">Vandalism</option>
+                    <option value="Other">Other</option>
                 </select><br>
                 <label for="description">Description:</label><br>
-                <input type="text" id="description" name="description" /><br>
-                <label for="uploadImage">Upload Image:</label><br>
-                <input type="file" id="uploadImage" name="uploadImage" accept="image/*" /><br><br>
-                <input type="hidden" name="lat" value="${e.latlng.lat}" />
-                <input type="hidden" name="lng" value="${e.latlng.lng}" />
+                <input type="text" id="description" name="description" required /><br><br>
+                
+                <input type="hidden" name="latitude" value="${e.latlng.lat}" />
+                <input type="hidden" name="longitude" value="${e.latlng.lng}" />
                 <button type="submit">Submit report</button>
             </form>
         `
         );
-        currentMarker.on("popupopen", () => { // listener for submitting form
+        currentMarker.on("popupopen", () => { 
             const reportForm = document.getElementById("report");
             reportForm.addEventListener("submit", submitForm);
         });
@@ -83,8 +101,6 @@ const MapComponent = () => {
             map.remove();
         };
     }, [user]);
-
-
 
     if (!user) {
         return <div>Please log in to view the map.</div>;

@@ -8,12 +8,14 @@ import verifyToken from './authentication/authMiddleware.js';
 
 dotenv.config();
 
+const PORT = process.env.NODE_PORT || 3000;
+
 
 const app = express();
 app.use(express.json());
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Change this to your actual Frontend URL
+    origin: 'http://localhost:5173', 
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -85,17 +87,42 @@ app.post("/login", async (req, res) => {
 
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards
+// Combined logic: This now supports both the Manual Form and the Python-style Map Pins
 app.post("/report-hazard", verifyToken, async (req, res) => {
-    const { reporter_user_id, category, description, latitude, longitude, location_name } = req.body;
+    const { user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
+    
+    // Safety check: if location_name is missing (common with map pins), give it a default
+    const finalLocation = location_name || "Map Pin Location";
+
     try {
         const result = await pool.query(
             "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-            [reporter_user_id, category, description, "Reported", latitude, longitude, location_name]
+            [user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
         console.error("Hazard Error:", err.message);
         res.status(500).send("Error logging hazard: " + err.message);
+    }
+});
+
+app.get("/heatmap-data", async (req, res) => {
+    const { start_time, end_time } = req.query;
+    try {
+        let queryText = "SELECT latitude, longitude FROM hazards";
+        let params = [];
+        if (start_time && end_time) {
+            queryText += " WHERE created_at BETWEEN $1 AND $2";
+            params = [start_time, end_time];
+        }
+        const result = await pool.query(queryText, params);
+        res.json(result.rows.map(row => ({
+            lat: parseFloat(row.latitude),
+            lng: parseFloat(row.longitude),
+            value: 1 
+        })));
+    } catch (err) {
+        res.status(500).send("Collation Error: " + err.message);
     }
 });
 
@@ -114,6 +141,6 @@ app.get("/admin/view-hazards", async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
