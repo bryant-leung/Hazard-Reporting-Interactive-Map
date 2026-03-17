@@ -35,6 +35,7 @@ const MapComponent = () => {
             .then(response => response.json())
             .then(data => {
                 data.forEach(report => {
+
                     L.marker([report.lat, report.lng])
                         .addTo(map)
                         .bindPopup(`<b>Reported Hazard</b>`);
@@ -53,7 +54,7 @@ const MapComponent = () => {
             const category = formData.get("hazard_category");
 
             const hazardData = {
-                user_id: user.id,
+                reporter_user_id: user.id,
                 hazard_category: category,
                 description: formData.get("description"),
                 latitude: lat,
