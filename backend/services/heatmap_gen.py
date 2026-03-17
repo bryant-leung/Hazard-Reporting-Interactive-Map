@@ -1,10 +1,7 @@
 from datetime import datetime
 from typing import Optional
-from fastapi import FastAPI
-from database import Base, engine
 from models import  Hazard
 from sqlalchemy.orm import Session
-from sqlalchemy import DateTime
 
 #Purpose of this function is to grab and send the required data from the database to the frontend, where the heatmap will be generated with heatmap.js
 
