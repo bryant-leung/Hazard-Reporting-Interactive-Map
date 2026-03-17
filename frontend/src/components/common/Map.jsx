@@ -98,25 +98,39 @@ const MapComponent = () => {
             }
             currentMarker = L.marker(e.latlng).addTo(map);
             currentMarker.bindPopup( 
-                `
-                <form id="report">
-                    <label for="hazard_category">Category:</label><br>
-                    <select name="hazard_category" id="hazard_category">
-                        <option value="Infrastructure">Infrastructure</option>
-                        <option value="Blocked Access">Blocked Access</option>
-                        <option value="Safety Hazard">Safety Hazard</option>
-                        <option value="Vandalism">Vandalism</option>
-                        <option value="Other">Other</option>
-                    </select><br>
-                    <label for="description">Description:</label><br>
-                    <input type="text" id="description" name="description" required /><br><br>
-                    
-                    <input type="hidden" name="latitude" value="${e.latlng.lat}" />
-                    <input type="hidden" name="longitude" value="${e.latlng.lng}" />
-                    <button type="submit">Submit report</button>
-                </form>
-            `
-            );
+    `
+    <div>
+        <b>Selected Location</b><br><br>
+
+        <a 
+            href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
+            target="_blank"
+            style="display:inline-block;margin-bottom:10px;color:blue;"
+        >
+            📍 Open in Google Maps
+        </a>
+
+        <form id="report">
+            <label for="hazard_category">Category:</label><br>
+            <select name="hazard_category" id="hazard_category">
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Blocked Access">Blocked Access</option>
+                <option value="Safety Hazard">Safety Hazard</option>
+                <option value="Vandalism">Vandalism</option>
+                <option value="Other">Other</option>
+            </select><br>
+
+            <label for="description">Description:</label><br>
+            <input type="text" id="description" name="description" required /><br><br>
+
+            <input type="hidden" name="latitude" value="${e.latlng.lat}" />
+            <input type="hidden" name="longitude" value="${e.latlng.lng}" />
+
+            <button type="submit">Submit report</button>
+        </form>
+    </div>
+`
+);
             currentMarker.on("popupopen", () => { 
                 const reportForm = document.getElementById("report");
                 reportForm.addEventListener("submit", submitForm);
@@ -138,13 +152,22 @@ const MapComponent = () => {
 
         currentMarker = L.marker(e.latlng).addTo(map);
         currentMarker
-            .bindPopup(`
-                <div>
-                    <b>Guest Access</b><br>
-                    You cannot report hazards while in guest mode.<br>
-                    Please log in or register.
-                </div>
-            `)
+    .bindPopup(`
+        <div>
+            <b>Guest Access</b><br>
+            You cannot report hazards while in guest mode.<br>
+            Please log in or register.<br><br>
+
+            <a 
+                href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
+                target="_blank"
+                rel="noopener noreferrer"
+                style="display:inline-block;color:blue;"
+            >
+                📍 Open in Google Maps
+            </a>
+        </div>
+    `)
             .openPopup();
 
     } else {
