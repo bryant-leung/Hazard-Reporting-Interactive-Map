@@ -17,12 +17,9 @@ L.Icon.Default.mergeOptions({
 
 const MapComponent = () => {
     const { user } = useAuth();
-
     const [clickedCoords, setClickedCoords] = useState(null);
-
     useEffect(() => {
         if (!user) return; 
-
         // Initialize map
         const map = L.map("map").setView([52.4506,-1.9306], 13);
         let currentMarker;
@@ -32,24 +29,8 @@ const MapComponent = () => {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // display retained markers
-        fetch("http://localhost:3000/heatmap-data")
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(report => {
-
-                    L.marker([report.lat, report.lng])
-                        .addTo(map)
-                        .bindPopup(`<b>Reported Hazard</b>`);
-                });
-            })
-            .catch(error => console.error("Error loading existing reports:", error));
-
         async function submitForm(event) {
             event.preventDefault(); 
-
-            
-
             const form = event.target;
             const formData = new FormData(form);
             const token = localStorage.getItem("token");
@@ -98,39 +79,39 @@ const MapComponent = () => {
             }
             currentMarker = L.marker(e.latlng).addTo(map);
             currentMarker.bindPopup( 
-    `
-    <div>
-        <b>Selected Location</b><br><br>
+                `
+                <div>
+                    <b>Selected Location</b><br><br>
 
-        <a 
-            href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
-            target="_blank"
-            style="display:inline-block;margin-bottom:10px;color:blue;"
-        >
-            📍 Open in Google Maps
-        </a>
+                    <a 
+                        href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
+                        target="_blank"
+                        style="display:inline-block;margin-bottom:10px;color:blue;"
+                    >
+                        📍 Open in Google Maps
+                    </a>
 
-        <form id="report">
-            <label for="hazard_category">Category:</label><br>
-            <select name="hazard_category" id="hazard_category">
-                <option value="Infrastructure">Infrastructure</option>
-                <option value="Blocked Access">Blocked Access</option>
-                <option value="Safety Hazard">Safety Hazard</option>
-                <option value="Vandalism">Vandalism</option>
-                <option value="Other">Other</option>
-            </select><br>
+                    <form id="report">
+                        <label for="hazard_category">Category:</label><br>
+                        <select name="hazard_category" id="hazard_category">
+                            <option value="Infrastructure">Infrastructure</option>
+                            <option value="Blocked Access">Blocked Access</option>
+                            <option value="Safety Hazard">Safety Hazard</option>
+                            <option value="Vandalism">Vandalism</option>
+                            <option value="Other">Other</option>
+                        </select><br>
 
-            <label for="description">Description:</label><br>
-            <input type="text" id="description" name="description" required /><br><br>
+                        <label for="description">Description:</label><br>
+                        <input type="text" id="description" name="description" required /><br><br>
 
-            <input type="hidden" name="latitude" value="${e.latlng.lat}" />
-            <input type="hidden" name="longitude" value="${e.latlng.lng}" />
+                        <input type="hidden" name="latitude" value="${e.latlng.lat}" />
+                        <input type="hidden" name="longitude" value="${e.latlng.lng}" />
 
-            <button type="submit">Submit report</button>
-        </form>
-    </div>
-`
-);
+                        <button type="submit">Submit report</button>
+                    </form>
+                </div>
+            `
+            );
             currentMarker.on("popupopen", () => { 
                 const reportForm = document.getElementById("report");
                 reportForm.addEventListener("submit", submitForm);
@@ -138,51 +119,62 @@ const MapComponent = () => {
             currentMarker.openPopup();
         }
 
-       function handleMapClick(e) {
+        function handleMapClick(e) {
 
-        setClickedCoords({
-    lat: e.latlng.lat.toFixed(5),
-    lng: e.latlng.lng.toFixed(5)
-});
+            setClickedCoords({
+                lat: e.latlng.lat.toFixed(5),
+                lng: e.latlng.lng.toFixed(5)
+            });
 
-    if (user.role === "guest") {
-        if (currentMarker) {
-            map.removeLayer(currentMarker);
+            if (user.role === "guest") {
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+
+                currentMarker = L.marker(e.latlng).addTo(map);
+                currentMarker
+            .bindPopup(`
+                <div>
+                    <b>Guest Access</b><br>
+                    You cannot report hazards while in guest mode.<br>
+                    Please log in or register.<br><br>
+
+                    <a 
+                        href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="display:inline-block;color:blue;"
+                    >
+                        📍 Open in Google Maps
+                    </a>
+                </div>
+            `)
+                    .openPopup();
+
+            } else {
+                addMarker(e); // normal behaviour for residents
+            }
         }
+        // display retained markers
+        fetch("http://localhost:3000/heatmap-data")
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(report => {
 
-        currentMarker = L.marker(e.latlng).addTo(map);
-        currentMarker
-    .bindPopup(`
-        <div>
-            <b>Guest Access</b><br>
-            You cannot report hazards while in guest mode.<br>
-            Please log in or register.<br><br>
+                    L.marker([report.latitude, report.longitude])
+                        .addTo(map)
+                        .bindPopup(`<b>Reported Hazard</b>`);
+                });
+            })
+            .catch(error => console.error("Error loading existing reports:", error));
+        map.on("click", handleMapClick);
 
-            <a 
-                href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
-                target="_blank"
-                rel="noopener noreferrer"
-                style="display:inline-block;color:blue;"
-            >
-                📍 Open in Google Maps
-            </a>
-        </div>
-    `)
-            .openPopup();
-
-    } else {
-        addMarker(e); // normal behaviour for residents
-    }
-}
-
-map.on("click", handleMapClick);
-
-       map.on("mousemove", (e) => {
-    setClickedCoords({
-        lat: e.latlng.lat.toFixed(5),
-        lng: e.latlng.lng.toFixed(5)
-    });
-}); 
+        map.on("mousemove", (e) => {
+            setClickedCoords({
+                lat: e.latlng.lat.toFixed(5),
+                lng: e.latlng.lng.toFixed(5)
+            });
+        }); 
         
         return () => {
             map.remove();
