@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
 
+// Marker pin imported online
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -20,6 +21,7 @@ const MapComponent = () => {
     const [clickedCoords, setClickedCoords] = useState(null);
     useEffect(() => {
         if (!user) return; 
+
         // Initialize map
         const map = L.map("map").setView([52.4506,-1.9306], 13);
         let currentMarker;
