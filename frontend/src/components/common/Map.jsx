@@ -82,41 +82,36 @@ const MapComponent = () => {
         async function submitForm(event) {
             event.preventDefault(); 
             const form = event.target;
-            const formData = new FormData(form);
+            const formData = new FormData(form); 
             const token = localStorage.getItem("token");
 
-            const lat = parseFloat(formData.get("latitude"));
-            const lng = parseFloat(formData.get("longitude"));
-            const category = formData.get("hazard_category");
-
-            const hazardData = {
-                reporter_user_id: user.id,
-                hazard_category: category,
-                description: formData.get("description"),
-                latitude: lat,
-                longitude: lng,
-                location_name: "Map Pin"
-            };
+            formData.append("reporter_user_id", user.id);
+            formData.append("location_name", "Map Pin");
 
             try {
                 const response = await fetch("http://localhost:3000/report-hazard", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`
                     },
-                    body: JSON.stringify(hazardData)
+                    body: formData 
                 });
 
                 if (response.ok) {
                     alert("Report submitted successfully!");
                     if (currentMarker) map.removeLayer(currentMarker);
                     
-                    // Add permanent marker immediately
+                    const lat = parseFloat(formData.get("latitude"));
+                    const lng = parseFloat(formData.get("longitude"));
+                    const category = formData.get("hazard_category");
+
                     L.marker([lat, lng])
                         .addTo(map)
                         .bindPopup(`<b>${category}</b><br>Submitted!`)
                         .openPopup();
+                } else {
+                    const errorData = await response.json();
+                    console.error("Server Error:", errorData);
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -153,6 +148,9 @@ const MapComponent = () => {
 
                         <label for="description">Description:</label><br>
                         <input type="text" id="description" name="description" required /><br><br>
+
+                        <label for="hazard_image">Upload Photo (Optional):</label><br>
+                        <input type="file" id="hazard_image" name="hazard_image" accept="image/*" /><br><br>
 
                         <input type="hidden" name="latitude" value="${e.latlng.lat}" />
                         <input type="hidden" name="longitude" value="${e.latlng.lng}" />

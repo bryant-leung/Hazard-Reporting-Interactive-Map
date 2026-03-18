@@ -59,3 +59,5 @@ ADD COLUMN IF NOT EXISTS longitude FLOAT;
 
 ALTER TABLE hazards 
 ADD COLUMN IF NOT EXISTS status hazard_status DEFAULT 'Reported';
+
+ALTER TABLE hazards ADD COLUMN image_url TEXT;

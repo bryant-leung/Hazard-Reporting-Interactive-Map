@@ -3,6 +3,9 @@ import pg from "pg";
 import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import verifyToken from './authentication/authMiddleware.js';
 
@@ -18,6 +21,21 @@ app.use(cors({
     origin: 'http://localhost:5173', 
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// For image uploading
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+if (!fs.existsSync('uploads')) {
+    fs.mkdirSync('uploads');
+}
+
+app.use('/uploads', express.static('uploads'));
 
 // Connect to Supabase postgresql database using connection string
 const pool = new pg.Pool({
@@ -88,16 +106,17 @@ app.post("/login", async (req, res) => {
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards
 // Combined logic: This now supports both the Manual Form and the Python-style Map Pins
-app.post("/report-hazard", verifyToken, async (req, res) => {
+app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (req, res) => {
     const { reporter_user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
     
     // Safety check: if location_name is missing (common with map pins), give it a default
     const finalLocation = location_name || "Map Pin Location";
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
         const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation]
+            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation, imageUrl]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
