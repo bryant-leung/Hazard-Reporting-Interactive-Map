@@ -42,3 +42,37 @@ body.high-contrast td {
     height: 850px;
     width: 100%;
 }
+.leaflet-marker-icon {
+    transition: opacity 0.3s ease;
+}
+.report-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+
+    width: 320px;
+    height: 5   00px;
+
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+
+    transform: translateX(120%);
+    transition: transform 0.35s ease;
+
+    z-index: 2000;
+}
+
+.report-panel.show {
+    transform: translateX(0);
+}
+
+.report-panel button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
