@@ -172,17 +172,15 @@ const MapComponent = () => {
             const shouldShow = zoom >= 13;
 
             markers.forEach(marker => {
-                const isVisible = map.hasLayer(marker);
-
-                if (shouldShow && !isVisible) {
-                    marker.addTo(map);
-                } else if (!shouldShow && isVisible) {
-                    map.removeLayer(marker);
+                if (shouldShow) {
+                    marker.setOpacity(1);
+                } else {
+                    marker.setOpacity(0);
                 }
             });
         }
 
-        map.on("zoom", updateMarkers);
+        map.on("zoomend", updateMarkers);
         map.on("click", handleMapClick);
 
         map.on("mousemove", (e) => {

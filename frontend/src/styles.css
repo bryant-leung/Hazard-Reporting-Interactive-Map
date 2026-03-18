@@ -42,3 +42,6 @@ body.high-contrast td {
     height: 850px;
     width: 100%;
 }
+.leaflet-marker-icon {
+    transition: opacity 0.3s ease;
+}
