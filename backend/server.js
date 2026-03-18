@@ -152,7 +152,16 @@ app.get("/heatmap-data", async (req, res) => {
 app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT h.id, h.category, h.description, h.status, h.latitude, h.longitude, h.location_name, u.email as reporter_email
+            SELECT
+                h.id, 
+                h.category, 
+                h.description, 
+                h.status, 
+                h.latitude, 
+                h.longitude, 
+                h.location_name, 
+                h.image_url, -- THIS WAS MISSING
+                u.email as reporter_email
             FROM hazards h
             LEFT JOIN users u ON h.reporter_user_id = u.id
             ORDER BY h.created_at DESC
