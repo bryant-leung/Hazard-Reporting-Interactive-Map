@@ -14,6 +14,7 @@ function ResidentDashboard() {
       <h1>Resident Dashboard</h1>
 
       <p>hazard list will go here</p>
+      
 
       {/* map added here so residents can view hazards on dashboard */}
       <div style={{ marginTop: "20px", marginBottom: "20px" }}>

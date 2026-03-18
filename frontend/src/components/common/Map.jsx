@@ -29,6 +29,15 @@ const MapComponent = () => {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
+        fetch("http://localhost:3000/heatmap-data")
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(report => {
+                    L.marker([report.lat, report.lng]).addTo(map);
+                });
+            })
+            .catch(error => console.error("Error loading existing reports:", error));
+
         async function submitForm(event) {
             event.preventDefault(); 
             const form = event.target;
@@ -156,17 +165,7 @@ const MapComponent = () => {
             }
         }
         // display retained markers
-        fetch("http://localhost:3000/heatmap-data")
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(report => {
-
-                    L.marker([report.latitude, report.longitude])
-                        .addTo(map)
-                        .bindPopup(`<b>Reported Hazard</b>`);
-                });
-            })
-            .catch(error => console.error("Error loading existing reports:", error));
+        
         map.on("click", handleMapClick);
 
         map.on("mousemove", (e) => {
