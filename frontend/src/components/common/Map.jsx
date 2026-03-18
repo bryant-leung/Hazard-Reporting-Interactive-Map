@@ -18,6 +18,7 @@ L.Icon.Default.mergeOptions({
 const MapComponent = () => {
     const { user } = useAuth();
     const [clickedCoords, setClickedCoords] = useState(null);
+    const markers = [];
     useEffect(() => {
         if (!user) return; 
         // Initialize map
@@ -33,7 +34,9 @@ const MapComponent = () => {
             .then(response => response.json())
             .then(data => {
                 data.forEach(report => {
-                    L.marker([report.lat, report.lng]).addTo(map);
+                    const marker = L.marker([report.lat, report.lng]);
+                    markers.push(marker);
+                    marker.addTo(map);
                 });
             })
             .catch(error => console.error("Error loading existing reports:", error));
@@ -164,8 +167,22 @@ const MapComponent = () => {
                 addMarker(e); // normal behaviour for residents
             }
         }
-        // display retained markers
-        
+        function updateMarkers() {
+            const zoom = map.getZoom();
+            const shouldShow = zoom >= 13;
+
+            markers.forEach(marker => {
+                const isVisible = map.hasLayer(marker);
+
+                if (shouldShow && !isVisible) {
+                    marker.addTo(map);
+                } else if (!shouldShow && isVisible) {
+                    map.removeLayer(marker);
+                }
+            });
+        }
+
+        map.on("zoom", updateMarkers);
         map.on("click", handleMapClick);
 
         map.on("mousemove", (e) => {
@@ -198,7 +215,7 @@ const MapComponent = () => {
             </div>
         )}
 
-        <div style={{ position: "relative", height: "500px", width: "100%" }}>
+        <div style={{ position: "relative", height: "600px", width: "100%" }}>
             <div id="map" style={{ height: "100%", width: "100%" }}></div>
 
             {clickedCoords && (
