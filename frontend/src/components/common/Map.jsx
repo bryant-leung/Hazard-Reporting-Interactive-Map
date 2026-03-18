@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
+import userImg from '../../assets/user.png';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -14,7 +15,15 @@ L.Icon.Default.mergeOptions({
     popupAnchor: [1, -34],        
     shadowSize: [41, 41]
 });
-
+const userIcon = L.icon({
+    iconUrl: userImg,
+    iconSize: [41, 41],
+    iconAnchor: [20, 41],
+    popupAnchor: [0, -41],
+    shadowSize: [41, 41]
+});
+const img = new Image();
+img.src = userImg;
 const MapComponent = () => {
     const { user } = useAuth();
     const [clickedCoords, setClickedCoords] = useState(null);
@@ -29,6 +38,27 @@ const MapComponent = () => {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                map.setView([lat, lng], 14);
+
+                L.marker([lat, lng], {icon: userIcon})
+                    .addTo(map)
+                    .bindPopup("You are here!")
+                    .openPopup();
+            },
+            (error) => {
+                console.error("Geolocation failed:", error);
+            },
+            {
+                enableHighAccuracy: false,
+                maximumAge: 0
+            }
+        );
 
         fetch("http://localhost:3000/heatmap-data")
             .then(response => response.json())
@@ -169,7 +199,7 @@ const MapComponent = () => {
         }
         function updateMarkers() {
             const zoom = map.getZoom();
-            const shouldShow = zoom >= 13;
+            const shouldShow = zoom >= 14;
 
             markers.forEach(marker => {
                 if (shouldShow) {
