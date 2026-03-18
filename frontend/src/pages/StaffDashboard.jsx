@@ -18,7 +18,7 @@ function StaffDashboard() {
 
   const token = localStorage.getItem("token")
 
-  // Fetch real reports from the database on load
+  // 1. Fetch real reports from the database on load
   useEffect(() => {
     fetchReports()
   }, [])
@@ -97,11 +97,22 @@ function StaffDashboard() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Staff Dashboard</h1>
-      <div style={{ height: "400px", marginBottom: "40px" }}>
+      
+      {/* Container fix: relative positioning and z-index keeps the map from overlapping the latest reports */}
+      <div style={{ 
+        position: "relative", 
+        height: "600px", 
+        width: "100%", 
+        marginBottom: "60px", 
+        zIndex: 1,
+        overflow: "hidden",
+        borderRadius: "8px",
+        border: "1px solid #ddd"
+      }}>
         <Map />
       </div>
 
-      <h2 style={{ marginTop: "20px" }}>Manage Reports</h2>
+      <h2 style={{ marginTop: "20px", clear: "both" }}>Manage Reports</h2>
 
       {reports.length === 0 ? (
         <p>No active reports at the moment.</p>
@@ -111,13 +122,19 @@ function StaffDashboard() {
             key={report.id}
             style={{
               border: "1px solid #ccc",
-              padding: "12px",
-              marginTop: "12px",
-              borderRadius: "6px"
+              padding: "15px",
+              marginTop: "15px",
+              borderRadius: "8px",
+              display: "flex", // added flex so image sits next to text
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: "#fff",
+              position: "relative",
+              zIndex: 2 // ensures reports sit above any map coordinate overlaps
             }}
           >
             {editingId === report.id ? (
-              <div>
+              <div style={{ flex: 1 }}>
                 {/* edit form for one report */}
                 <div>
                   <label>Status</label>
@@ -137,7 +154,7 @@ function StaffDashboard() {
                   <textarea
                     value={editedDescription}
                     onChange={(e) => setEditedDescription(e.target.value)}
-                    style={{ width: "100%" }}
+                    style={{ width: "90%" }}
                   />
                 </div>
 
@@ -152,22 +169,36 @@ function StaffDashboard() {
                 </button>
               </div>
             ) : (
-              <div>
+              <div style={{ flex: 1 }}>
                 {/* normal report display */}
                 <p><strong>ID:</strong> {report.id}</p>
                 <p><strong>Category:</strong> {report.category}</p>
                 <p><strong>Description:</strong> {report.description}</p>
                 <p><strong>Location:</strong> {report.location_name}</p>
-                <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange" }}>{report.status}</span></p>
+                <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
                 <p><strong>Reporter:</strong> {report.reporter_email}</p>
 
                 <button onClick={() => handleEditClick(report)}>Update Status</button>
                 <button
                   onClick={() => handleDelete(report.id)}
-                  style={{ marginLeft: "10px", backgroundColor: "#ff4d4d", color: "white" }}
+                  style={{ marginLeft: "10px", backgroundColor: "#ff4d4d", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
                 >
                   Delete
                 </button>
+              </div>
+            )}
+
+            {/* if an image exists in the database show it on the right side of the card */}
+            {report.image_url && (
+              <div style={{ marginLeft: "20px", textAlign: "center" }}>
+                <a href={`http://localhost:3000${report.image_url}`} target="_blank" rel="noreferrer">
+                  <img 
+                    src={`http://localhost:3000${report.image_url}`} 
+                    alt="Hazard" 
+                    style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "6px", border: "1px solid #eee" }} 
+                  />
+                </a>
+                <p style={{ fontSize: "11px", color: "#666", marginTop: "5px" }}>View Full Image</p>
               </div>
             )}
           </div>
