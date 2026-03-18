@@ -109,7 +109,7 @@ app.post("/report-hazard", verifyToken, async (req, res) => {
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT latitude, longitude FROM hazards";
+        let queryText = "SELECT latitude, longitude, category, description, status FROM hazards";
         let params = [];
         if (start_time && end_time) {
             queryText += " WHERE created_at BETWEEN $1 AND $2";
@@ -119,7 +119,10 @@ app.get("/heatmap-data", async (req, res) => {
         res.json(result.rows.map(row => ({
             lat: parseFloat(row.latitude),
             lng: parseFloat(row.longitude),
-            value: 1 
+            cat: row.category,
+            desc: row.description,
+            status: row.status,
+            value: 1
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);

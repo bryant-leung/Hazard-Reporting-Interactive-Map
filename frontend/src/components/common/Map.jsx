@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
 import userImg from '../../assets/user.png';
+import close from '../../assets/close.png';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -28,6 +29,7 @@ const MapComponent = () => {
     const { user } = useAuth();
     const [clickedCoords, setClickedCoords] = useState(null);
     const markers = [];
+    const [selectedReport, setSelectedReport] = useState(null);
     useEffect(() => {
         if (!user) return; 
         // Initialize map
@@ -65,6 +67,10 @@ const MapComponent = () => {
             .then(data => {
                 data.forEach(report => {
                     const marker = L.marker([report.lat, report.lng]);
+                    marker.on("click", (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        setSelectedReport(report);
+                    });
                     markers.push(marker);
                     marker.addTo(map);
                 });
@@ -160,9 +166,7 @@ const MapComponent = () => {
             });
             currentMarker.openPopup();
         }
-
         function handleMapClick(e) {
-
             setClickedCoords({
                 lat: e.latlng.lat.toFixed(5),
                 lng: e.latlng.lng.toFixed(5)
@@ -197,7 +201,7 @@ const MapComponent = () => {
                 addMarker(e); // normal behaviour for residents
             }
         }
-        function updateMarkers() {
+        function zoomMarkers() {
             const zoom = map.getZoom();
             const shouldShow = zoom >= 14;
 
@@ -209,8 +213,7 @@ const MapComponent = () => {
                 }
             });
         }
-
-        map.on("zoomend", updateMarkers);
+        map.on("zoomend", zoomMarkers);
         map.on("click", handleMapClick);
 
         map.on("mousemove", (e) => {
@@ -218,7 +221,7 @@ const MapComponent = () => {
                 lat: e.latlng.lat.toFixed(5),
                 lng: e.latlng.lng.toFixed(5)
             });
-        }); 
+        });
         
         return () => {
             map.remove();
@@ -228,45 +231,77 @@ const MapComponent = () => {
     if (!user) return <div>Please log in to view the map.</div>;
 
     return (
-    <>
-        {user.role === "guest" && (
-            <div
-                style={{
-                    backgroundColor: '#fff3cd',
-                    padding: '10px',
-                    marginBottom: '10px',
-                    borderRadius: '6px',
-                    color: '#856404'
-                }}
-            >
-                You are viewing as a guest. Hazard reporting is disabled. Please log in to submit a report.
-            </div>
-        )}
-
-        <div style={{ position: "relative", height: "600px", width: "100%" }}>
-            <div id="map" style={{ height: "100%", width: "100%" }}></div>
-
-            {clickedCoords && (
+        <>
+            {user.role === "guest" && (
                 <div
                     style={{
-                        position: "absolute",
-                        bottom: "10px",
-                        left: "10px",
-                        backgroundColor: "white",
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        boxShadow: "0 1px 5px rgba(0,0,0,0.3)",
-                        fontSize: "14px",
-                        zIndex: 1000
+                        backgroundColor: '#fff3cd',
+                        padding: '10px',
+                        marginBottom: '10px',
+                        borderRadius: '6px',
+                        color: '#856404'
                     }}
                 >
-                    Latitude: {clickedCoords.lat} <br />
-                    Longitude: {clickedCoords.lng}
+                    You are viewing as a guest. Hazard reporting is disabled. Please log in to submit a report.
                 </div>
             )}
-        </div>
-    </>
-);
+
+            <div style={{ position: "relative", height: "600px", width: "100%" }}>
+            <div id="map" style={{ height: "100%", width: "100%" }}></div>
+                {clickedCoords && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: "10px",
+                                left: "10px",
+                                backgroundColor: "white",
+                                padding: "8px 12px",
+                                borderRadius: "6px",
+                                boxShadow: "0 1px 5px rgba(0,0,0,0.3)",
+                                fontSize: "14px",
+                                zIndex: 1000
+                            }}
+                        >
+                            Latitude: {clickedCoords.lat} <br />
+                            Longitude: {clickedCoords.lng}
+                        </div>
+                    )}
+                <div className={`report-panel ${selectedReport ? "show" : ""}`}>
+                    {selectedReport && (
+                        <>
+                            <h3>{selectedReport.cat}</h3>
+                            <p>{selectedReport.desc}</p>
+                            <p>
+                                <strong>Status: </strong>
+                                <span style={{
+                                    display: "inline-block",
+                                    padding: "2px 8px",
+                                    borderRadius: "4px",
+                                    fontSize: "13px",
+                                    backgroundColor:
+                                        selectedReport.status === "resolved" ? "#d4edda" :
+                                        selectedReport.status === "in_progress" ? "#fff3cd" :
+                                        "#f8d7da",
+                                    color:
+                                        selectedReport.status === "resolved" ? "#155724" :
+                                        selectedReport.status === "in_progress" ? "#856404" :
+                                        "#721c24"
+                                }}>
+                                    {selectedReport.status ?? "pending"}
+                                </span>
+                            </p>
+
+                            <br /><br />
+                            <button onClick={() => setSelectedReport(null)}>
+                                <img src={close} alt="Close" style={{ width: "16px", height: "16px" }} />
+                            </button>
+                        </>
+                    )}
+                </div>
+
+            </div>
+        </>
+    );
 };
 
 export default MapComponent;
