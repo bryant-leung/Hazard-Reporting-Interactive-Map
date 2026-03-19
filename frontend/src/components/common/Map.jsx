@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
@@ -44,13 +44,12 @@ const MapComponent = () => {
     const [clickedCoords, setClickedCoords] = useState(null);
     const markers = [];
     const [selectedReport, setSelectedReport] = useState(null);
+    const currentMarkerRef = useRef(null);
     useEffect(() => {
         if (!user) return; 
 
         // Initialize map
-        const map = L.map("map").setView([52.4506,-1.9306], 13);
-        let currentMarker;
-        
+        const map = L.map("map").setView([52.4506,-1.9306], 13);     
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
@@ -73,10 +72,17 @@ const MapComponent = () => {
 
                 map.setView([lat, lng], 14);
 
-                L.marker([lat, lng], { icon: userIcon })
+                const userMarker = L.marker([lat, lng], { icon: userIcon })
                     .addTo(map)
-                    .bindPopup("You are here!")
-                    .openPopup();
+                    .bindPopup("You are here!");
+                userMarker.on("click", (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    if (currentMarkerRef.current) {
+                        map.removeLayer(currentMarkerRef.current);
+                        currentMarkerRef.current = null;
+                    }
+                    userMarker.openPopup();
+                });
             });
         }
 
@@ -87,6 +93,10 @@ const MapComponent = () => {
                     const marker = L.marker([report.lat, report.lng]);
                     marker.on("click", (e) => {
                         L.DomEvent.stopPropagation(e);
+                        if (currentMarkerRef.current) {
+                            map.removeLayer(currentMarkerRef.current);
+                            currentMarkerRef.current = null;
+                        }
                         setSelectedReport(report);
                     });
                     markers.push(marker);
@@ -115,8 +125,11 @@ const MapComponent = () => {
 
                 if (response.ok) {
                     alert("Report submitted successfully!");
-                    if (currentMarker) map.removeLayer(currentMarker);
-                    
+                    if (currentMarkerRef.current) {
+                        map.removeLayer(currentMarkerRef.current);
+                        currentMarkerRef.current = null;
+                    }
+
                     const lat = parseFloat(formData.get("latitude"));
                     const lng = parseFloat(formData.get("longitude"));
                     const category = formData.get("hazard_category");
@@ -135,11 +148,12 @@ const MapComponent = () => {
         }
 
         function addMarker(e) {
-            if (currentMarker) {
-                map.removeLayer(currentMarker);
+            if (currentMarkerRef.current) {
+                map.removeLayer(currentMarkerRef.current);
+                currentMarkerRef.current = null;
             }
-            currentMarker = L.marker(e.latlng).addTo(map);
-            currentMarker.bindPopup( 
+            currentMarkerRef.current = L.marker(e.latlng).addTo(map);
+            currentMarkerRef.current.bindPopup( 
                 `
                 <div>
                     <b>Selected Location</b><br><br>
@@ -176,11 +190,11 @@ const MapComponent = () => {
                 </div>
             `
             );
-            currentMarker.on("popupopen", () => { 
+            currentMarkerRef.current.on("popupopen", () => { 
                 const reportForm = document.getElementById("report");
                 reportForm.addEventListener("submit", submitForm);
             });
-            currentMarker.openPopup();
+            currentMarkerRef.current.openPopup();
         }
         function handleMapClick(e) {
             setClickedCoords({
@@ -189,12 +203,13 @@ const MapComponent = () => {
             });
 
             if (user.role === "guest") {
-                if (currentMarker) {
-                    map.removeLayer(currentMarker);
+                if (currentMarkerRef.current) {
+                    map.removeLayer(currentMarkerRef.current);
+                    currentMarkerRef.current = null;
                 }
 
-                currentMarker = L.marker(e.latlng).addTo(map);
-                currentMarker
+                currentMarkerRef.current = L.marker(e.latlng).addTo(map);
+                currentMarkerRef.current
             .bindPopup(`
                 <div>
                     <b>Guest Access</b><br>
