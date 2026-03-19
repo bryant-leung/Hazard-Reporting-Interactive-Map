@@ -40,7 +40,7 @@ const userIcon = L.icon({
 const img = new Image();
 img.src = userImg;
 const MapComponent = () => {
-    const { user } = useAuth();
+    const { user, highContrast } = useAuth();
     const [clickedCoords, setClickedCoords] = useState(null);
     const markers = [];
     const [selectedReport, setSelectedReport] = useState(null);
@@ -50,10 +50,15 @@ const MapComponent = () => {
 
         // Initialize map
         const map = L.map("map").setView([52.4506,-1.9306], 13);     
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+        L.tileLayer(
+            highContrast
+                ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png'
+                : 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}@2x.png',
+            {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }
+        ).addTo(map);
 
         if (userPosition) {
             const lat = userPosition.coords.latitude;
@@ -257,7 +262,7 @@ const MapComponent = () => {
         return () => {
             map.remove();
         };
-    }, [user]);
+    }, [user, highContrast]);
 
     if (!user) return <div>Please log in to view the map.</div>;
 

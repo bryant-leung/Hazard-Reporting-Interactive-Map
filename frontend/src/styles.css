@@ -3,12 +3,12 @@ body {
 }
 
 body.high-contrast {
-    background-color: #000 !important;
+    background-color: #121212 !important;
     color: #fff !important;
 }
 
 body.high-contrast nav {
-    background-color: #000 !important;
+    background-color: #121212 !important;
     border-bottom: 2px solid #fff;
 }
 
@@ -17,7 +17,7 @@ body.high-contrast a {
 }
 
 body.high-contrast button {
-    background-color: #000 !important;
+    background-color: #121212 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
@@ -25,7 +25,7 @@ body.high-contrast button {
 body.high-contrast input,
 body.high-contrast select,
 body.high-contrast textarea {
-    background-color: #000 !important;
+    background-color: #121212 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
@@ -35,7 +35,7 @@ body.high-contrast th,
 body.high-contrast td {
     border-color: #fff !important;
     color: #fff !important;
-    background-color: #000 !important;
+    background-color: #121212 !important;
 }
 
 #map{
