@@ -6,6 +6,19 @@ import "../../styles.css";
 import userImg from '../../assets/user.png';
 import close from '../../assets/close.png';
 
+let userPosition = null;
+navigator.geolocation.getCurrentPosition(
+    (position) => {
+        userPosition = position;
+    },
+    (error) => {
+        console.error("Geolocation preload failed:", error);
+    },
+    {
+        enableHighAccuracy: false,
+        maximumAge: 60000
+    }
+);
 // Marker pin imported online
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -43,26 +56,29 @@ const MapComponent = () => {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
+        if (userPosition) {
+            const lat = userPosition.coords.latitude;
+            const lng = userPosition.coords.longitude;
+
+            map.setView([lat, lng], 14);
+
+            L.marker([lat, lng], { icon: userIcon })
+                .addTo(map)
+                .bindPopup("You are here!")
+                .openPopup();
+        } else {
+            navigator.geolocation.getCurrentPosition((position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
 
                 map.setView([lat, lng], 14);
 
-                L.marker([lat, lng], {icon: userIcon})
+                L.marker([lat, lng], { icon: userIcon })
                     .addTo(map)
                     .bindPopup("You are here!")
                     .openPopup();
-            },
-            (error) => {
-                console.error("Geolocation failed:", error);
-            },
-            {
-                enableHighAccuracy: false,
-                maximumAge: 0
-            }
-        );
+            });
+        }
 
         fetch("http://localhost:3000/heatmap-data")
             .then(response => response.json())
