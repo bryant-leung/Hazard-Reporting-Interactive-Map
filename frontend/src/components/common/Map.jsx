@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import * as L from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "../../styles.css";
+import 'leaflet.heat'
 import userImg from '../../assets/user.png';
 import close from '../../assets/close.png';
 
@@ -30,6 +31,7 @@ L.Icon.Default.mergeOptions({
     popupAnchor: [1, -34],        
     shadowSize: [41, 41]
 });
+
 const userIcon = L.icon({
     iconUrl: userImg,
     iconSize: [41, 41],
@@ -40,25 +42,100 @@ const userIcon = L.icon({
 const img = new Image();
 img.src = userImg;
 const MapComponent = () => {
+
+    const [heatmap_toggle, view_heatmap] = useState(false); //state to track if heatmap is on or off
+    const [time_range, set_time_range] = useState("all");//state to track the selected time range
+    const heatmap_layer_ref = useRef(null); //ref to store current heatmap layer
+    const map_ref = useRef(null); //ref to store the leaflet map
+    const points_ref = useRef([]); //ref to store heatmap data points
+    const markers_ref = useRef([]); //ref to store the pins when the heatmap is on
+
     const { user, highContrast } = useAuth();
     const [clickedCoords, setClickedCoords] = useState(null);
     const markers = [];
     const [selectedReport, setSelectedReport] = useState(null);
     const currentMarkerRef = useRef(null);
+    function get_dates(range) { //calculate the start and end dates we should pull from the database based on the given range, using the current date
+        const start = new Date();
+        const end = new Date();
+
+        if (range == "today") start.setHours(0,0,0,0);
+        else if (range == "week") start.setDate(start.getDate() -7);
+        else if (range == "month") start.setMonth(start.getMonth() -1);
+        else if (range == "year") start.setFullYear(start.getFullYear() -1);
+        else return null; // null if all time is selected, as we need to call the heatmap-data with no arguments
+        return { start : start.toISOString(), end: end.toISOString()}
+    }
+
+    function build_heatmap_layer(points) { //build the heatmap with dynamic max val TODO UPDATE THE SEVERITY SCORE SO WE HAVE SOMETHING TO BASE THIS OFF also check if colours and max amount are good, currently TBD
+        const max_val = points.reduce((acc, p) => Math.max(acc, p[2]), 1);
+        return L.heatLayer(points , {
+            radius: 40,
+            blur: 25,
+            max: max_val*0.6,
+            minOpacity: 0.7,
+            gradient: {
+                0.0: 'blue',
+                0.4: 'cyan',
+                0.6: 'lime',
+                0.8: 'yellow',
+                1.0: 'red'
+            }
+        })
+    }
+    useEffect(() => {
+    if (!map_ref.current) return; //safeguard for unitialised map
+
+    const range = get_dates(time_range);
+    const url = range
+        ? `http://localhost:3000/heatmap-data?start_time=${range.start}&end_time=${range.end}` //if range is not null get data between date range, else just all of the data
+        : "http://localhost:3000/heatmap-data";
+    
+    fetch(url)
+        .then(res => res.json()) //convert response to json
+        .then(data => {
+            points_ref.current = data.map(p => [p.lat, p.lng, p.value]); //convert data to correct format
+
+        if (heatmap_toggle && heatmap_layer_ref.current){ //if heatmap is enabled, refresh for changing date selection
+            map_ref.current.removeLayer(heatmap_layer_ref.current); //remove old heatmap layer
+            heatmap_layer_ref.current = build_heatmap_layer(points_ref.current).addTo(map_ref.current); //create and update new layer
+        } 
+    })
+    } , [time_range] //runs when time range changes
+    );
+
+    useEffect(() => { 
+    if (!map_ref.current) return;
+
+    if (heatmap_toggle) {
+        markers_ref.current.forEach(m => m.remove());
+        heatmap_layer_ref.current = build_heatmap_layer(points_ref.current).addTo(map_ref.current);
+
+    } else {
+        if (heatmap_layer_ref.current) {
+            map_ref.current.removeLayer(heatmap_layer_ref.current);
+            heatmap_layer_ref.current = null;
+        }
+        markers_ref.current.forEach(m => m.addTo(map_ref.current)); //re-add the markers to the map
+    }
+} , [heatmap_toggle] //runs when view is changed from map to heatmap
+);
+
     useEffect(() => {
         if (!user) return; 
 
         // Initialize map
-        const map = L.map("map").setView([52.4506,-1.9306], 13);     
-        L.tileLayer(
-            highContrast
-                ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png'
-                : 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}@2x.png',
-            {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap'
-            }
-        ).addTo(map);
+        const map = L.map("map").setView([52.4506,-1.9306], 13);
+        map_ref.current = map; //saving the current state of the map
+         L.tileLayer(
+                    highContrast
+                        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png'
+                        : 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}@2x.png',
+                    {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap'
+                    }
+                ).addTo(map);
 
         if (userPosition) {
             const lat = userPosition.coords.latitude;
@@ -78,16 +155,16 @@ const MapComponent = () => {
                 map.setView([lat, lng], 14);
 
                 const userMarker = L.marker([lat, lng], { icon: userIcon })
-                    .addTo(map)
-                    .bindPopup("You are here!");
-                userMarker.on("click", (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    if (currentMarkerRef.current) {
-                        map.removeLayer(currentMarkerRef.current);
-                        currentMarkerRef.current = null;
-                    }
-                    userMarker.openPopup();
-                });
+                                    .addTo(map)
+                                    .bindPopup("You are here!");
+                                userMarker.on("click", (e) => {
+                                    L.DomEvent.stopPropagation(e);
+                                    if (currentMarkerRef.current) {
+                                        map.removeLayer(currentMarkerRef.current);
+                                        currentMarkerRef.current = null;
+                                    }
+                                    userMarker.openPopup();
+                                });
             });
         }
 
@@ -106,7 +183,9 @@ const MapComponent = () => {
                     });
                     markers.push(marker);
                     marker.addTo(map);
+                    markers_ref.current.push(marker); // storing markers for switching
                 });
+                points_ref.current = data.map(p => [p.lat, p.lng, p.value]); //storing the values from the markers
             })
             .catch(error => console.error("Error loading existing reports:", error));
 
@@ -134,7 +213,6 @@ const MapComponent = () => {
                         map.removeLayer(currentMarkerRef.current);
                         currentMarkerRef.current = null;
                     }
-
                     const lat = parseFloat(formData.get("latitude"));
                     const lng = parseFloat(formData.get("longitude"));
                     const category = formData.get("hazard_category");
@@ -157,8 +235,8 @@ const MapComponent = () => {
                 map.removeLayer(currentMarkerRef.current);
                 currentMarkerRef.current = null;
             }
-            currentMarkerRef.current = L.marker(e.latlng).addTo(map);
-            currentMarkerRef.current.bindPopup( 
+                currentMarkerRef.current = L.marker(e.latlng).addTo(map);
+                currentMarkerRef.current.bindPopup( 
                 `
                 <div>
                     <b>Selected Location</b><br><br>
@@ -212,7 +290,7 @@ const MapComponent = () => {
                     map.removeLayer(currentMarkerRef.current);
                     currentMarkerRef.current = null;
                 }
-
+                
                 currentMarkerRef.current = L.marker(e.latlng).addTo(map);
                 currentMarkerRef.current
             .bindPopup(`
@@ -282,6 +360,7 @@ const MapComponent = () => {
                 </div>
             )}
 
+
             <div style={{ position: "relative", height: "600px", width: "100%" }}>
             <div id="map" style={{ height: "100%", width: "100%" }}></div>
                 {clickedCoords && (
@@ -336,8 +415,24 @@ const MapComponent = () => {
                 </div>
 
             </div>
+        <button onClick={() => view_heatmap(prev => !prev)}>
+            {heatmap_toggle ? "Display Markers" : "Display Heatmap"}
+        </button>
+
+        {heatmap_toggle && (
+            <select value={time_range} onChange={e => set_time_range(e.target.value)}>
+                <option value="today">Today</option>
+                <option value="week">Past Week</option>
+                <option value="month">Past Month</option>
+                <option value="year">Past Year</option>
+                <option value="all">All Time</option>
+            </select>
+        )}
         </>
     );
 };
+
+
+
 
 export default MapComponent;
