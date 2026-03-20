@@ -15,7 +15,7 @@ function ReportHazardPage() {
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
   const [category, setCategory] = useState("Infrastructure"); 
-  const [latitude, setLatitude] = useState(locationState.state?.lat || "") 
+  const [latitude, setLatitude] = useState(locationState.state?.lat || "") // Pre-fill with map lat if available
   const [longitude, setLongitude] = useState(locationState.state?.lng || "") 
 
   // this runs when the form is submitted
@@ -35,7 +35,7 @@ function ReportHazardPage() {
       longitude: longitude ? parseFloat(longitude) : null 
     }
 
-    console.log("Hazard Data being sent to FastAPI:", hazardData);
+    console.log("Hazard Data being sent to Node.js (Port 3000):", hazardData);
 
     try {
       // Switched to Node.js Port 3000 
@@ -64,7 +64,22 @@ function ReportHazardPage() {
   }
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
+      {/* ADDED: Back button to return to the map view */}
+      <button 
+        onClick={() => navigate("/resident")} 
+        style={{ 
+          marginBottom: "20px", 
+          padding: "8px 12px", 
+          cursor: "pointer",
+          backgroundColor: "#f0f0f0",
+          border: "1px solid #ccc",
+          borderRadius: "4px"
+        }}
+      >
+        ← Back to Map
+      </button>
+
       <h2>Report a Hazard</h2>
 
       {/* hazard report form */}
