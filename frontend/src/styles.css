@@ -90,3 +90,29 @@ body.high-contrast td {
     color: #000000 !important;
     background-color: #f4f4f4 !important;
 }
+
+
+.leaflet-container .leaflet-popup-content-wrapper .leaflet-popup-content a {
+    color: #0000EE !important; 
+    text-decoration: underline !important;
+    font-weight: bold !important;
+}
+
+
+.leaflet-container .leaflet-popup-content a:hover {
+    color: #000080 !important;
+    text-decoration: none !important;
+}
+
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: #333 !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+    color: #000 !important;
+    background-color: #f0f0f0 !important;
+    border-radius: 4px;
+}
