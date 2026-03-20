@@ -189,14 +189,14 @@ const MapComponent = () => {
             })
             .catch(error => console.error("Error loading existing reports:", error));
 
-        async function submitForm(event) {
+        async function submitForm(event, address) {
             event.preventDefault(); 
             const form = event.target;
             const formData = new FormData(form); 
             const token = localStorage.getItem("token");
 
             formData.append("reporter_user_id", user.id);
-            formData.append("location_name", "Map Pin");
+            formData.append("location_name", address || "Map Pin");
 
             try {
                 const response = await fetch("http://localhost:3000/report-hazard", {
@@ -230,16 +230,28 @@ const MapComponent = () => {
             }
         }
 
-        function addMarker(e) {
+        async function addMarker(e) {
             if (currentMarkerRef.current) {
                 map.removeLayer(currentMarkerRef.current);
                 currentMarkerRef.current = null;
             }
-                currentMarkerRef.current = L.marker(e.latlng).addTo(map);
+
+            let address = "Loading address...";
+            currentMarkerRef.current = L.marker(e.latlng).addTo(map);
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${e.latlng.lat}&lon=${e.latlng.lng}`);
+                const data = await response.json();
+                address = data.display_name || "Unknown Location";
+            } catch (err) {
+                address = "Map Pin";
+            }
+
                 currentMarkerRef.current.bindPopup( 
                 `
                 <div>
-                    <b>Selected Location</b><br><br>
+                    <b>Selected Location</b><br>
+                    <small>${address}</small><br><br>
 
                     <a 
                         href="https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}" 
@@ -275,7 +287,7 @@ const MapComponent = () => {
             );
             currentMarkerRef.current.on("popupopen", () => { 
                 const reportForm = document.getElementById("report");
-                reportForm.addEventListener("submit", submitForm);
+                reportForm.addEventListener("submit", (event) => submitForm(event, address));
             });
             currentMarkerRef.current.openPopup();
         }
