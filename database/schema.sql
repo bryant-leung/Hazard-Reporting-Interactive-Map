@@ -1,4 +1,4 @@
--- 1. Create Enums safely (only if they don't already exist)
+-- Create Enums
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'hazard_category') THEN
@@ -20,7 +20,7 @@ BEGIN
     END IF;
 END $$;
 
--- 2. Users Table
+-- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
--- 3. Hazards Table (Includes Lat/Long and Enums)
+-- Hazards Table (Includes Lat/Long and Enums)
 CREATE TABLE IF NOT EXISTS hazards (
     id SERIAL PRIMARY KEY,
     reporter_user_id INTEGER NOT NULL REFERENCES users(id),
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS hazards (
     longitude FLOAT NOT NULL CHECK (longitude BETWEEN -180 AND 180)
 );
 
--- 4. Status Table
+-- Status Table
 CREATE TABLE IF NOT EXISTS status_updates (
     id SERIAL PRIMARY KEY,
     hazard_id INTEGER NOT NULL REFERENCES hazards(id) ON DELETE CASCADE,
@@ -52,9 +52,12 @@ CREATE TABLE IF NOT EXISTS status_updates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Changes to Lat and Long
 ALTER TABLE hazards 
 ADD COLUMN IF NOT EXISTS latitude FLOAT,
 ADD COLUMN IF NOT EXISTS longitude FLOAT;
 
 ALTER TABLE hazards 
 ADD COLUMN IF NOT EXISTS status hazard_status DEFAULT 'Reported';
+
+ALTER TABLE hazards ADD COLUMN image_url TEXT;

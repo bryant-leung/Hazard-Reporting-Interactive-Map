@@ -3,6 +3,9 @@ import pg from "pg";
 import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import verifyToken from './authentication/authMiddleware.js';
 
@@ -18,6 +21,21 @@ app.use(cors({
     origin: 'http://localhost:5173', 
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// For image uploading
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+if (!fs.existsSync('uploads')) {
+    fs.mkdirSync('uploads');
+}
+
+app.use('/uploads', express.static('uploads'));
 
 // Connect to Supabase postgresql database using connection string
 const pool = new pg.Pool({
@@ -88,16 +106,17 @@ app.post("/login", async (req, res) => {
 // Link complaint to a specific user using foreign keys
 // Allows users to report hazards
 // Combined logic: This now supports both the Manual Form and the Python-style Map Pins
-app.post("/report-hazard", verifyToken, async (req, res) => {
+app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (req, res) => {
     const { reporter_user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
     
     // Safety check: if location_name is missing (common with map pins), give it a default
     const finalLocation = location_name || "Map Pin Location";
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
         const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation]
+            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation, imageUrl]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
@@ -109,7 +128,7 @@ app.post("/report-hazard", verifyToken, async (req, res) => {
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT latitude, longitude FROM hazards";
+        let queryText = "SELECT latitude, longitude, category, description, status FROM hazards";
         let params = [];
         if (start_time && end_time) {
             queryText += " WHERE created_at BETWEEN $1 AND $2";
@@ -119,7 +138,10 @@ app.get("/heatmap-data", async (req, res) => {
         res.json(result.rows.map(row => ({
             lat: parseFloat(row.latitude),
             lng: parseFloat(row.longitude),
-            value: 1 
+            cat: row.category,
+            desc: row.description,
+            status: row.status,
+            value: 1
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
@@ -130,7 +152,16 @@ app.get("/heatmap-data", async (req, res) => {
 app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT h.id, h.category, h.description, h.status, h.latitude, h.longitude, h.location_name, u.email as reporter_email
+            SELECT
+                h.id, 
+                h.category, 
+                h.description, 
+                h.status, 
+                h.latitude, 
+                h.longitude, 
+                h.location_name, 
+                h.image_url, -- THIS WAS MISSING
+                u.email as reporter_email
             FROM hazards h
             LEFT JOIN users u ON h.reporter_user_id = u.id
             ORDER BY h.created_at DESC
