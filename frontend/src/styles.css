@@ -76,3 +76,17 @@ body.high-contrast td {
     border: none;
     cursor: pointer;
 }
+
+
+.leaflet-touch .leaflet-bar a, 
+.leaflet-control-zoom-in, 
+.leaflet-control-zoom-out {
+    color: #000000 !important;       /* Changes the + and - from yellow to black */
+    background-color: #ffffff !important; /* Ensures the box stays white */
+}
+
+
+.leaflet-touch .leaflet-bar a:hover {
+    color: #000000 !important;
+    background-color: #f4f4f4 !important;
+}

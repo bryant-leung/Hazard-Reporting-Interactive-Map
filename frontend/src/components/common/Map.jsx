@@ -133,7 +133,7 @@ const MapComponent = () => {
                         : 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}@2x.png',
                     {
                         maxZoom: 19,
-                        attribution: '&copy; OpenStreetMap'
+                        attribution: '© OpenStreetMap'
                     }
                 ).addTo(map);
 
@@ -370,6 +370,7 @@ const MapComponent = () => {
                             bottom: "10px",
                                 left: "10px",
                                 backgroundColor: "white",
+                                color: "black",
                                 padding: "8px 12px",
                                 borderRadius: "6px",
                                 boxShadow: "0 1px 5px rgba(0,0,0,0.3)",
