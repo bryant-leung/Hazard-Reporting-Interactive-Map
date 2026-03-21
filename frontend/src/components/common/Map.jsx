@@ -192,10 +192,12 @@ const MapComponent = () => {
                     marker.bindPopup(popupContent);
                     marker.on("click", (e) => {
                         L.DomEvent.stopPropagation(e);
+                        const latlng = e.latlng;
                         if (currentMarkerRef.current) {
                             map.removeLayer(currentMarkerRef.current);
                             currentMarkerRef.current = null;
                         }
+                        map.flyTo(latlng, map.getZoom()+1, {duration: 0.3});
                         setSelectedReport(report);
                         marker.openPopup();
                     });
@@ -231,17 +233,48 @@ const MapComponent = () => {
                         map.removeLayer(currentMarkerRef.current);
                         currentMarkerRef.current = null;
                     }
-                    const lat = parseFloat(formData.get("latitude"));
-                    const lng = parseFloat(formData.get("longitude"));
-                    const category = formData.get("hazard_category");
+                    fetch("http://localhost:3000/heatmap-data")
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(report => {
+                    const marker = L.marker([report.lat, report.lng]);
+                    const fullImageUrl = report.imageUrl
+                        ? `http://localhost:3000${report.imageUrl}`
+                        : null;
+                    let popupContent = "";
+                    if (fullImageUrl) {
+                        popupContent += `
+                            <img src="${fullImageUrl}" 
+                                alt="Report Image" 
+                                style="width:200px; height:auto; margin-top:5px;" />
+                        `;
+                    } else {
+                        popupContent += `<p>No image available</p>`;
+                    }
+                    popupContent += `</div>`;
+                    marker.bindPopup(popupContent);
+                    marker.on("click", (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        const latlng = e.latlng;
+                        if (currentMarkerRef.current) {
+                            map.removeLayer(currentMarkerRef.current);
+                            currentMarkerRef.current = null;
+                        }
+                        map.flyTo(latlng, map.getZoom()+1, {duration: 0.3});
+                        setSelectedReport(report);
+                        marker.openPopup();
+                    });
+                    markers.push(marker);
+                    marker.addTo(map);
+                    markers_ref.current.push(marker);
+                        });
+                        points_ref.current = data.map(p => [p.lat, p.lng, p.value]);
+                    })
+                    .catch(error => console.error("Error loading existing reports:", error));
 
-                    L.marker([lat, lng])
-                        .addTo(map)
-                        .bindPopup(`<b>${category}</b><br>Submitted!`)
-                        .openPopup();
-                } else {
-                    const errorData = await response.json();
-                    console.error("Server Error:", errorData);
+                        } else {
+                            const errorData = await response.json();
+                            console.error("Server Error:", errorData);
                 }
             } catch (error) {
                 console.error("Error:", error);
