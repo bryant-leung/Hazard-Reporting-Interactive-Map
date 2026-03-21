@@ -38,6 +38,19 @@ function Navbar() {
     }}>
       <h2 style={{ margin: 0 }}>CivicTrace</h2>
       <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        
+        {user && user.role === 'resident' && (
+          <Link to="/my-reports" style={{ 
+            color: 'white', 
+            textDecoration: 'none', 
+            border: '1px solid white', 
+            padding: '5px 10px', 
+            borderRadius: '4px' 
+          }}>
+            My Reports
+          </Link>
+        )}
+
         <button onClick={toggleLargeUI} style={{
           background: 'none',
           border: '1px solid white',

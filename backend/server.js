@@ -291,6 +291,19 @@ app.delete("/admin/delete-hazard/:id", verifyToken, async (req, res) => {
     }
 });
 
+app.get('/api/my-reports', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM hazards WHERE reporter_user_id = $1 ORDER BY created_at DESC", 
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("My Reports Error:", err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
