@@ -428,6 +428,41 @@ const MapComponent = () => {
                                 </span>
                             </p>
 
+                            <p>
+                                <strong>Severity: </strong>
+                                <span style={{
+                                    display: "inline-block",
+                                    padding: "2px 8px",
+                                    borderRadius: "4px",
+                                    fontSize: "13px",
+                                    backgroundColor:
+                                        selectedReport.value === 1 ? "#a3a9fd" :
+                                        selectedReport.value === 2 ? "#97f7e9" :
+                                        selectedReport.value === 3 ? "#d3fcbd" :
+                                        selectedReport.value === 4 ? "#fcffa9" :
+                                        "#f8d7da",
+                                        
+                                    color:
+                                        selectedReport.value === 1 ? "#000a97" :
+                                        selectedReport.value === 2 ? "#009c85" :
+                                        selectedReport.value === 3 ? "#3cab00" :
+                                        selectedReport.value === 4 ? "#a8ad0a" :
+                                        "#721c24",
+                                }}>
+                                    {{
+                                        1: "1 - Mild Inconvenience",
+                                        2: "2 - Major Inconvenience",
+                                        3: "3 - Potentially Dangerous",
+                                        4: "4 - Dangerous",
+                                        5: "5 - Incredibly Dangerous",
+                                    }[selectedReport.value] ?? "Unknown"}
+                                </span>
+                            </p>
+
+            <p>{selectedReport.desc}</p>
+
+            <p></p>
+
                             <br /><br />
                             <button onClick={() => setSelectedReport(null)}>
                                 <img src={close} alt="Close" style={{ width: "16px", height: "16px" }} />
