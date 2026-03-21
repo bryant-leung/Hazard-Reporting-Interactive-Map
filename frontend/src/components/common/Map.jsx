@@ -197,7 +197,7 @@ const MapComponent = () => {
                             map.removeLayer(currentMarkerRef.current);
                             currentMarkerRef.current = null;
                         }
-                        map.flyTo(latlng, map.getZoom()+1, {duration: 0.3});
+                        map.flyTo(latlng, 14, {duration: 0.3});
                         setSelectedReport(report);
                         marker.openPopup();
                     });
@@ -260,7 +260,7 @@ const MapComponent = () => {
                             map.removeLayer(currentMarkerRef.current);
                             currentMarkerRef.current = null;
                         }
-                        map.flyTo(latlng, map.getZoom()+1, {duration: 0.3});
+                        map.flyTo(latlng,14, {duration: 0.3});
                         setSelectedReport(report);
                         marker.openPopup();
                     });
@@ -613,7 +613,7 @@ const MapComponent = () => {
                                 messages.map((msg, i) => (
                                     <div key={i}>
                                         <hr />
-                                        <strong>{msg.email}</strong>
+                                        <strong>{msg.email?.split("@")[0]}</strong>
                                         <p>{msg.message}</p>
                                         <small>{new Date(msg.created_at).toLocaleString()}</small><br></br>
                                         <button className="vote-button" onClick={(e) => {
