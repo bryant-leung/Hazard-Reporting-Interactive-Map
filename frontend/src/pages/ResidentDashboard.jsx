@@ -1,16 +1,16 @@
-import { useNavigate } from "react-router-dom"
-import Map from "../components/common/Map"
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import Map from "../components/common/Map";
+import IssueChatBox from "../components/IssueChatBox";
 
 // resident dashboard page
 // this is where residents will see the map and hazard list
 function ResidentDashboard() {
-
-  // useNavigate lets us move to another page
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [selectedReportId] = useState(1);
 
   return (
-    <div>
-
+    <div style={{ position: "relative" }}>
       <h1>Resident Dashboard</h1>
 
       <p>hazard list will go here</p>
@@ -25,8 +25,12 @@ function ResidentDashboard() {
         Report Hazard
       </button>
 
+      {/* TODO: Replace selectedReportId with map marker selection */}
+      <div style={{ position: "absolute", bottom: "20px", right: "20px", zIndex: 1000 }}>
+        <IssueChatBox reportId={selectedReportId} role="Resident" />
+      </div>
     </div>
-  )
+  );
 }
 
-export default ResidentDashboard
+export default ResidentDashboard;
