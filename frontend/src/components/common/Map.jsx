@@ -68,12 +68,11 @@ const MapComponent = () => {
     }
 
     function build_heatmap_layer(points) { //build the heatmap with dynamic max val TODO UPDATE THE SEVERITY SCORE SO WE HAVE SOMETHING TO BASE THIS OFF also check if colours and max amount are good, currently TBD
-        const max_val = points.reduce((acc, p) => Math.max(acc, p[2]), 1);
         return L.heatLayer(points , {
             radius: 40,
             blur: 25,
-            max: max_val*0.6,
-            minOpacity: 0.7,
+            max: 5,
+            minOpacity: 0.5,
             gradient: {
                 0.0: 'blue',
                 0.4: 'cyan',
@@ -270,6 +269,16 @@ const MapComponent = () => {
                             <option value="Vandalism">Vandalism</option>
                             <option value="Other">Other</option>
                         </select><br>
+
+                        <label for="severity">Category:</label><br>
+                        <select name="severity" id="severity">
+                            <option value= "1">1 - Mild Inconvenience</option>
+                            <option value="2">2 - Major Inconvenience</option>
+                            <option value="3">3 - Potentially Dangerous</option>
+                            <option value="4">4 - Dangerous</option>
+                            <option value="5">5 - Incredibly Dangerous</option>
+                        </select><br>
+                        
 
                         <label for="description">Description:</label><br>
                         <input type="text" id="description" name="description" required /><br><br>

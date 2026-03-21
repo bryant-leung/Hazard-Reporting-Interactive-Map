@@ -11,7 +11,8 @@ function ReportHazardPage() {
   
   // storing the form data in state
   const [title, setTitle] = useState("") 
-  const [description, setDescription] = useState("")
+  const [description, setDescription] = useState("1")
+  const [severity, set_severity] = useState("")
   const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
   const [category, setCategory] = useState("Infrastructure"); 
@@ -30,6 +31,7 @@ function ReportHazardPage() {
       user_id: user.id,                 
       hazard_category: category,        
       description: description, 
+      severity: severity,
       location_name: location,   
       latitude: latitude ? parseFloat(latitude) : null,  
       longitude: longitude ? parseFloat(longitude) : null 
@@ -99,6 +101,25 @@ function ReportHazardPage() {
             <option value="Safety Hazard">Safety Hazard</option>
             <option value="Vandalism">Vandalism</option>
             <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <br />
+
+        <div>
+          <label>Hazard Severity</label>
+          <br />
+          {/* Choice selection box matching 1 - 5 Scale */}
+          <select 
+            value={severity} 
+            onChange={(e) => set_severity(e.target.value)}
+            style={{ padding: "5px", width: "100%" }}
+          >
+            <option value= "1">1 - Mild Inconvenience</option>
+            <option value="2">2 - Major Inconvenience</option>
+            <option value="3">3 - Potentially Dangerous</option>
+            <option value="4">4 - Dangerous</option>
+            <option value="5">5 - Incredibly Dangerous</option>
           </select>
         </div>
 

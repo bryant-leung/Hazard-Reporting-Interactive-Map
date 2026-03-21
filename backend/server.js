@@ -107,7 +107,7 @@ app.post("/login", async (req, res) => {
 // Allows users to report hazards
 // Combined logic: This now supports both the Manual Form and the Python-style Map Pins
 app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (req, res) => {
-    const { reporter_user_id, hazard_category, description, latitude, longitude, location_name } = req.body;
+    const { reporter_user_id, hazard_category, severity, description, latitude, longitude, location_name } = req.body;
     
     // Safety check: if location_name is missing (common with map pins), give it a default
     const finalLocation = location_name || "Map Pin Location";
@@ -115,8 +115,8 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 
     try {
         const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, description, status, latitude, longitude, location_name, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
-            [reporter_user_id, hazard_category, description, "Reported", latitude, longitude, finalLocation, imageUrl]
+            "INSERT INTO hazards (reporter_user_id, category, severity, description, status, latitude, longitude, location_name, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+            [reporter_user_id, hazard_category, severity, description, "Reported", latitude, longitude, finalLocation, imageUrl]
         );
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
@@ -128,7 +128,7 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT latitude, longitude, category, description, status FROM hazards";
+        let queryText = "SELECT latitude, longitude, category, description, status, severity FROM hazards";
         let params = [];
         if (start_time && end_time) {
             queryText += " WHERE created_at BETWEEN $1 AND $2";
@@ -141,7 +141,7 @@ app.get("/heatmap-data", async (req, res) => {
             cat: row.category,
             desc: row.description,
             status: row.status,
-            value: 1
+            value: row.severity
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
@@ -155,7 +155,8 @@ app.get("/admin/view-hazards", verifyToken, async (req, res) => {
             SELECT
                 h.id, 
                 h.category, 
-                h.description, 
+                h.description,
+                h.severity, 
                 h.status, 
                 h.latitude, 
                 h.longitude, 
@@ -175,7 +176,7 @@ app.get("/admin/view-hazards", verifyToken, async (req, res) => {
 // Update hazard status and log the change in status_updates for audit trail
 app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
-    const { status, description, note } = req.body;
+    const { status, description, note, severity } = req.body;
     const staff_id = req.user.id; 
 
     try {
@@ -184,8 +185,8 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
         const old_status = currentData.rows[0].status;
 
         await pool.query(
-            "UPDATE hazards SET status = $1, description = $2 WHERE id = $3",
-            [status, description, id]
+            "UPDATE hazards SET status = $1, description = $2, severity = $4 WHERE id = $3",
+            [status, description, severity, id]
         );
 
         await pool.query(

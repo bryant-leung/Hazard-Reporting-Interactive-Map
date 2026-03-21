@@ -34,11 +34,13 @@ CREATE TABLE IF NOT EXISTS hazards (
     id SERIAL PRIMARY KEY,
     reporter_user_id INTEGER NOT NULL REFERENCES users(id),
     category hazard_category NOT NULL,
+    severity INTEGER BETWEEN 1 and 5 NOT NULL,
     description TEXT NOT NULL,
     status hazard_status NOT NULL DEFAULT 'Reported',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     latitude FLOAT NOT NULL CHECK (latitude BETWEEN -90 AND 90), 
     longitude FLOAT NOT NULL CHECK (longitude BETWEEN -180 AND 180)
+    
 );
 
 -- Status Table
