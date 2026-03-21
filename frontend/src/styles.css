@@ -78,6 +78,21 @@ body.high-contrast td {
     cursor: pointer;
 }
 
+.vote-button {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+
+  display: inline-block;
+  width: auto;
+  height: auto;
+    margin: 10px 0px;
+  background-color:transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
 
 .leaflet-touch .leaflet-bar a, 
 .leaflet-control-zoom-in, 

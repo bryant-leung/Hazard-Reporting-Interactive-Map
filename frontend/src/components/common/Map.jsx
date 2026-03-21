@@ -397,21 +397,58 @@ const MapComponent = () => {
                     })
                 });
                 const text = await res.text();
-let data;
-try {
-    data = JSON.parse(text);
-} catch {
-    data = text;
-}
-                console.log("Message send response:", data);
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+                
                 if (res.ok) {
-                    setMessages(prev => [data, ...prev]);
-                    setNewMessage("");
+                    fetch(`http://localhost:3000/chat-messages?reportId=${selectedReport.id}&sort=${chatSort}`)
+                        .then(res => res.json())
+                        .then(data => setMessages(data))
+                        .catch(err => console.error("Error reloading messages:", err));
                 } else {
                     console.error(data);
                 }
             } catch (err) {
                 console.error("Error sending message:", err);
+            }
+        };
+        const updateVote = async (messageId) => {
+            if (!selectedReport) return;
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch("http://localhost:3000/update-vote", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message_id: messageId,
+                        user_id: user.id
+                    })
+                });
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+                if (res.ok) {
+                    fetch(`http://localhost:3000/chat-messages?reportId=${selectedReport.id}&sort=${chatSort}`)
+                        .then(res => res.json())
+                        .then(data => setMessages(data))
+                        .catch(err => console.error("Error reloading messages:", err));
+                } else {
+                    console.error("Vote update failed:", data);
+                }
+                console.log("Vote update response:", data);
+            } catch (err) {
+                console.error("Error updating vote:", err);
             }
         };
     return (
@@ -453,130 +490,137 @@ try {
                         </div>
                     )}
                 <div className={`report-panel ${selectedReport ? "show" : ""}`}>
-                    {selectedReport && (
-                        <>
-                            <h3 style={{ marginTop: "0" }}>{selectedReport.cat} hazard</h3>
-                            <p ><b>Location:</b> <em>{selectedReport.location}</em></p>
-                            <p><b>Description:</b>   {selectedReport.desc}</p>
-                            <p>
-                                <strong>Status: </strong>
-                                <span style={{
-                                    display: "inline-block",
-                                    padding: "2px 8px",
-                                    borderRadius: "4px",
-                                    fontSize: "13px",
-                                    backgroundColor:
-                                        selectedReport.status === "resolved" ? "#d4edda" :
-                                        selectedReport.status === "in_progress" ? "#fff3cd" :
-                                        "#f8d7da",
-                                    color:
-                                        selectedReport.status === "resolved" ? "#155724" :
-                                        selectedReport.status === "in_progress" ? "#856404" :
-                                        "#721c24"
-                                }}>
-                                    {selectedReport.status ?? "pending"}
-                                </span>
-                            </p>
+                {selectedReport && (
+                    <>
+                        <h3 style={{ marginTop: "0" }}>{selectedReport.cat} hazard</h3>
+                        <p><b>Location:</b> <em>{selectedReport.location}</em></p>
+                        <p><b>Description:</b> {selectedReport.desc}</p>
 
-                            <p>
-                                <strong>Severity: </strong>
-                                <span style={{
-                                    display: "inline-block",
-                                    padding: "2px 8px",
-                                    borderRadius: "4px",
-                                    fontSize: "13px",
-                                    backgroundColor:
-                                        selectedReport.value === 1 ? "#a3a9fd" :
-                                        selectedReport.value === 2 ? "#97f7e9" :
-                                        selectedReport.value === 3 ? "#d3fcbd" :
-                                        selectedReport.value === 4 ? "#fcffa9" :
-                                        "#f8d7da",
-                                        
-                                    color:
-                                        selectedReport.value === 1 ? "#000a97" :
-                                        selectedReport.value === 2 ? "#009c85" :
-                                        selectedReport.value === 3 ? "#3cab00" :
-                                        selectedReport.value === 4 ? "#a8ad0a" :
-                                        "#721c24",
-                                }}>
-                                    {{
-                                        1: "1 - Mild Inconvenience",
-                                        2: "2 - Major Inconvenience",
-                                        3: "3 - Potentially Dangerous",
-                                        4: "4 - Dangerous",
-                                        5: "5 - Incredibly Dangerous",
-                                    }[selectedReport.value] ?? "Unknown"}
-                                </span>
-                            </p>
-                            {messages.length > 0 && (
-                                <>
-                                    <select 
-                                        value={chatSort} 
-                                        onChange={(e) => setChatSort(e.target.value)}
-                                        style={{ marginBottom: "10px", marginLeft: "5px" }}
-                                    >
-                                        <option value="newest">Newest</option>
-                                        <option value="oldest">Oldest</option>
-                                        <option value="hot">Hot</option>
-                                    </select>
-                                </>
+                        <p>
+                            <strong>Status: </strong>
+                            <span style={{
+                                display: "inline-block",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                                backgroundColor:
+                                    selectedReport.status === "resolved" ? "#d4edda" :
+                                    selectedReport.status === "in_progress" ? "#fff3cd" :
+                                    "#f8d7da",
+                                color:
+                                    selectedReport.status === "resolved" ? "#155724" :
+                                    selectedReport.status === "in_progress" ? "#856404" :
+                                    "#721c24"
+                            }}>
+                                {selectedReport.status ?? "pending"}
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Severity: </strong>
+                            <span style={{
+                                display: "inline-block",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                fontSize: "13px",
+                                backgroundColor:
+                                    selectedReport.value === 1 ? "#a3a9fd" :
+                                    selectedReport.value === 2 ? "#97f7e9" :
+                                    selectedReport.value === 3 ? "#d3fcbd" :
+                                    selectedReport.value === 4 ? "#fcffa9" :
+                                    "#f8d7da",
+                                color:
+                                    selectedReport.value === 1 ? "#000a97" :
+                                    selectedReport.value === 2 ? "#009c85" :
+                                    selectedReport.value === 3 ? "#3cab00" :
+                                    selectedReport.value === 4 ? "#a8ad0a" :
+                                    "#721c24",
+                            }}>
+                                {{
+                                    1: "1 - Mild Inconvenience",
+                                    2: "2 - Major Inconvenience",
+                                    3: "3 - Potentially Dangerous",
+                                    4: "4 - Dangerous",
+                                    5: "5 - Incredibly Dangerous",
+                                }[selectedReport.value] ?? "Unknown"}
+                            </span>
+                        </p>
+
+                        {messages.length > 0 && (
+                            <select
+                                value={chatSort}
+                                onChange={(e) => setChatSort(e.target.value)}
+                                style={{ marginBottom: "10px", marginLeft: "5px" }}
+                            >
+                                <option value="newest">Newest</option>
+                                <option value="oldest">Oldest</option>
+                                <option value="hot">Hot</option>
+                            </select>
+                        )}
+
+                        <div style={{ maxHeight: "230px", overflowY: "auto" }}>
+                            {messages.length === 0 ? (
+                                <p>No messages yet.</p>
+                            ) : (
+                                messages.map((msg, i) => (
+                                    <div key={i}>
+                                        <hr />
+                                        <strong>{msg.email}</strong>
+                                        <p>{msg.message}</p>
+                                        <small>{new Date(msg.created_at).toLocaleString()}</small><br></br>
+                                        <button className="vote-button" onClick={(e) => {
+                                                e.stopPropagation();
+                                                updateVote(msg.message_id);
+                                            }}
+                                        >👍 {msg.vote}
+                                        </button>
+                                    </div>
+                                ))
                             )}
-                            <div style={{ maxHeight: "230px", overflowY: "auto" }}>
-                                {messages.length === 0 ? (
-                                    <p>No messages yet.</p> 
-                                ) : (
-                                    messages.map((msg, i) => (
-                                        <div key={i}>
-                                            <hr></hr>
-                                            <strong>{msg.email}</strong>
-                                            <p>{msg.message}</p>
-                                            <small>{new Date(msg.created_at).toLocaleString()}</small>
-                                            <p>👍 {msg.vote}</p>
-                                        </div>
-                                    ))
-                                )}<hr></hr>
-                            </div>
-                            <div style={{ position: "absolute", bottom: "10px", width: "93%" }}>
-                                <textarea
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder="Write a message..."
-                                    rows="2"
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px 60px 8px 8px",
-                                        borderRadius: "6px",
-                                        border: "1px solid #ccc",
-                                        resize: "none",
-                                        boxSizing: "border-box"
-                                    }}
-                                />
+                            <hr />
+                        </div>
 
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        sendMessage();
-                                    }}
-                                    style={{
-                                        position: "absolute",
-                                        right: "10px",
-                                        bottom: "10px",
-                                        padding: "6px 10px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    Send
-                                </button>
-                            </div>
-                            <br /><br />
-                            <button onClick={() => setSelectedReport(null)}>
-                                <img src={close} alt="Close" style={{ width: "16px", height: "16px" }} />
+                        <div style={{ position: "absolute", bottom: "10px", width: "93%" }}>
+                            <textarea
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Write a message..."
+                                rows="2"
+                                style={{
+                                    width: "100%",
+                                    padding: "8px 60px 8px 8px",
+                                    borderRadius: "6px",
+                                    border: "1px solid #ccc",
+                                    resize: "none",
+                                    boxSizing: "border-box"
+                                }}
+                            />
+
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    sendMessage();
+                                }}
+                                style={{
+                                    position: "absolute",
+                                    right: "10px",
+                                    bottom: "10px",
+                                    padding: "6px 10px",
+                                    borderRadius: "6px",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                Send
                             </button>
-                        </>
-                    )}
-                </div>
+                        </div>
 
+                        <br /><br />
+                        <button onClick={() => setSelectedReport(null)}>
+                            <img src={close} alt="Close" style={{ width: "16px", height: "16px" }} />
+                        </button>
+                    </>
+                )}
+            </div>
             </div>
         <button onClick={() => view_heatmap(prev => !prev)}>
             {heatmap_toggle ? "Display Markers" : "Display Heatmap"}

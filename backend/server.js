@@ -153,7 +153,7 @@ app.get("/heatmap-data", async (req, res) => {
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
     try {
-        let queryText = "SELECT c.created_at, c.message, u.email, c.vote FROM chat_message c,users u WHERE c.hazard_id = $1 AND c.user_id = u.id";
+        let queryText = "SELECT c.message_id, c.created_at, c.message, u.email, c.vote FROM chat_message c,users u WHERE c.hazard_id = $1 AND c.user_id = u.id";
         let params = [reportId];
         console.log("reportId:", reportId);
         console.log("sort:", sort);
@@ -183,6 +183,48 @@ app.post("/send-messages", verifyToken, async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(500).send("Error posting chat message: " + err.message);
+    }
+});
+
+app.post("/update-vote", verifyToken, async (req, res) => {
+    const { message_id, user_id } = req.body;
+    try {
+        const voted = await pool.query(
+            "SELECT * FROM voted WHERE message_id = $1 AND user_id = $2",
+            [message_id, user_id]
+        );
+        let updatedMessage;
+        let voteRecord;
+        let action;
+        if (voted.rows.length > 0) {
+            updatedMessage = await pool.query(
+                "UPDATE chat_message SET vote = vote - 1 WHERE message_id = $1 RETURNING *",
+                [message_id]
+            );
+            voteRecord = await pool.query(
+                "DELETE FROM voted WHERE message_id = $1 AND user_id = $2 RETURNING *",
+                [message_id, user_id]
+            );
+
+            action = "removed";
+        } else {
+            updatedMessage = await pool.query(
+                "UPDATE chat_message SET vote = vote + 1 WHERE message_id = $1 RETURNING *",
+                [message_id]
+            );
+            voteRecord = await pool.query(
+                "INSERT INTO voted (message_id, user_id) VALUES ($1, $2) RETURNING *",
+                [message_id, user_id]
+            );
+            action = "added";
+        }
+        res.status(200).json({
+            action,
+            updatedMessage: updatedMessage.rows[0],
+            voteRecord: voteRecord.rows[0]
+        });
+    } catch (err) {
+        res.status(500).send("Error updating vote: " + err.message);
     }
 });
 
