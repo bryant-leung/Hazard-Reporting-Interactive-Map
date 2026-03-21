@@ -2,31 +2,24 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Map from "../components/common/Map"
 
-
-// staff dashboard page
-// for now this is just frontend logic with sample data
-// later we can connect it to the backend / database
 function StaffDashboard() {
   const navigate = useNavigate()
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterCategory, setFilterCategory] = useState("All")
 
-  // Edit States
   const [editingId, setEditingId] = useState(null)
   const [editedCategory, setEditedCategory] = useState("")
   const [editedDescription, setEditedDescription] = useState("")
   const [editedStatus, setEditedStatus] = useState("")
 
-
   const token = localStorage.getItem("token")
 
-
-  // 1. Fetch real reports from the database on load
   useEffect(() => {
     fetchReports()
   }, [])
-
 
   const fetchReports = async () => {
     try {
@@ -42,10 +35,7 @@ function StaffDashboard() {
     }
   }
 
-
-  // save the edited report back into the reports array
   async function handleSave(id) {
-    // added a note prompt to fill the status_updates table when admin makes changes
     const note = window.prompt("Enter a staff note for this status change:");
    
     try {
@@ -62,29 +52,24 @@ function StaffDashboard() {
         })
       })
 
-
       if (response.ok) {
         alert("Report updated and logged in database!")
         setEditingId(null)
-        fetchReports() // Refresh the list
+        fetchReports()
       }
     } catch (err) {
       alert("Error updating report")
     }
   }
 
-
-  // remove a report from the list
   async function handleDelete(id) {
     if (!window.confirm("Are you sure you want to delete this report?")) return
-
 
     try {
       const response = await fetch(`http://localhost:3000/admin/delete-hazard/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
-
 
       if (response.ok) {
         setReports(reports.filter((r) => r.id !== id))
@@ -94,8 +79,6 @@ function StaffDashboard() {
     }
   }
 
-
-  // open the edit form for one report
   function handleEditClick(report) {
     setEditingId(report.id)
     setEditedCategory(report.category)
@@ -103,15 +86,23 @@ function StaffDashboard() {
     setEditedStatus(report.status)
   }
 
+  const filteredReports = reports.filter((report) => {
+    const matchesSearch = 
+      (report.description && report.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (report.location_name && report.location_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (report.id && report.id.toString().includes(searchQuery));
+
+    const matchesCategory = filterCategory === "All" || report.category === filterCategory;
+
+    return matchesSearch && matchesCategory;
+  });
 
   if (loading) return <p>Loading reports...</p>
-
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Staff Dashboard</h1>
      
-      {/* Container fix: relative positioning and z-index keeps the map from overlapping the latest reports */}
       <div style={{
         position: "relative",
         height: "600px",
@@ -125,14 +116,57 @@ function StaffDashboard() {
         <Map />
       </div>
 
+      <div style={{ 
+        display: "flex", 
+        gap: "15px", 
+        marginBottom: "20px", 
+        alignItems: "center",
+        flexWrap: "wrap" 
+      }}>
+        <div style={{ flex: 1, minWidth: "250px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Search Reports</label>
+          <input 
+            type="text"
+            placeholder="Search ID, location, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ 
+              width: "100%", 
+              padding: "10px", 
+              borderRadius: "6px", 
+              border: "1px solid #ccc" 
+            }}
+          />
+        </div>
 
-      <h2 style={{ marginTop: "20px", clear: "both" }}>Manage Reports</h2>
+        <div style={{ minWidth: "200px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Filter Category</label>
+          <select 
+            value={filterCategory} 
+            onChange={(e) => setFilterCategory(e.target.value)}
+            style={{ 
+              width: "100%", 
+              padding: "10px", 
+              borderRadius: "6px", 
+              border: "1px solid #ccc" 
+            }}
+          >
+            <option value="All">All Categories</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="Blocked Access">Blocked Access</option>
+            <option value="Safety Hazard">Safety Hazard</option>
+            <option value="Vandalism">Vandalism</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
 
+      <h2 style={{ marginTop: "20px", clear: "both" }}>Manage Reports ({filteredReports.length})</h2>
 
-      {reports.length === 0 ? (
-        <p>No active reports at the moment.</p>
+      {filteredReports.length === 0 ? (
+        <p>No reports match your search criteria.</p>
       ) : (
-        reports.map((report) => (
+        filteredReports.map((report) => (
           <div
             key={report.id}
             style={{
@@ -140,17 +174,16 @@ function StaffDashboard() {
               padding: "15px",
               marginTop: "15px",
               borderRadius: "8px",
-              display: "flex", // added flex so image sits next to text
+              display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               backgroundColor: "#fff",
               position: "relative",
-              zIndex: 2 // ensures reports sit above any map coordinate overlaps
+              zIndex: 2
             }}
           >
             {editingId === report.id ? (
               <div style={{ flex: 1 }}>
-                {/* edit form for one report */}
                 <div>
                   <label>Status</label>
                   <br />
@@ -161,9 +194,7 @@ function StaffDashboard() {
                   </select>
                 </div>
 
-
                 <br />
-
 
                 <div>
                   <label>Description</label>
@@ -175,9 +206,7 @@ function StaffDashboard() {
                   />
                 </div>
 
-
                 <br />
-
 
                 <button onClick={() => handleSave(report.id)}>Save</button>
                 <button
@@ -189,14 +218,12 @@ function StaffDashboard() {
               </div>
             ) : (
               <div style={{ flex: 1 }}>
-                {/* normal report display */}
                 <p><strong>ID:</strong> {report.id}</p>
                 <p><strong>Category:</strong> {report.category}</p>
                 <p><strong>Description:</strong> {report.description}</p>
                 <p><strong>Location:</strong> {report.location_name}</p>
                 <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
                 <p><strong>Reporter:</strong> {report.reporter_email}</p>
-
 
                 <button onClick={() => handleEditClick(report)}>Update Status</button>
                 <button
@@ -208,8 +235,6 @@ function StaffDashboard() {
               </div>
             )}
 
-
-            {/* if an image exists in the database show it on the right side of the card */}
             {report.image_url && (
               <div style={{ marginLeft: "20px", textAlign: "center" }}>
                 <a href={`http://localhost:3000${report.image_url}`} target="_blank" rel="noreferrer">
@@ -228,6 +253,5 @@ function StaffDashboard() {
     </div>
   )
 }
-
 
 export default StaffDashboard
