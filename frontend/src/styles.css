@@ -198,3 +198,29 @@ body.high-contrast td {
     right: 3px !important;
     padding: 0 !important;
 }
+
+body.large-ui {
+    font-size: 1.15rem !important;
+}
+
+body.large-ui button, 
+body.large-ui .leaflet-bar a {
+    padding: 12px 20px !important;
+    min-height: 48px !important;
+    min-width: 48px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.large-ui input, 
+body.large-ui select, 
+body.large-ui textarea {
+    padding: 12px !important;
+    font-size: 1.1rem !important;
+}
+
+body.large-ui .leaflet-popup-content {
+    font-size: 1.1rem !important;
+    width: 320px !important;
+}
