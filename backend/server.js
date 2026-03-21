@@ -128,7 +128,7 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT latitude, longitude, category, description, status, severity FROM hazards";
+        let queryText = "SELECT latitude, longitude, category, description, status, severity FROM hazards WHERE status != 'Fixed'";
         let params = [];
         if (start_time && end_time) {
             queryText += " WHERE created_at BETWEEN $1 AND $2";

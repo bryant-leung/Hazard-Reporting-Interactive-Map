@@ -1,48 +1,53 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Map from "../components/common/Map";
-import IssueChatBox from "../components/IssueChatBox";
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import Map from "../components/common/Map"
+
 
 // staff dashboard page
 // for now this is just frontend logic with sample data
 // later we can connect it to the backend / database
 function StaffDashboard() {
-  const navigate = useNavigate();
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedReportId] = useState(1);
+  const navigate = useNavigate()
+  const [reports, setReports] = useState([])
+  const [loading, setLoading] = useState(true)
+
 
   // Edit States
-  const [editingId, setEditingId] = useState(null);
-  const [editedCategory, setEditedCategory] = useState("");
-  const [editedDescription, setEditedDescription] = useState("");
-  const [editedStatus, setEditedStatus] = useState("");
+  const [editingId, setEditingId] = useState(null)
+  const [editedCategory, setEditedCategory] = useState("")
+  const [editedDescription, setEditedDescription] = useState("")
+  const [editedStatus, setEditedStatus] = useState("")
 
-  const token = localStorage.getItem("token");
+
+  const token = localStorage.getItem("token")
+
 
   // 1. Fetch real reports from the database on load
   useEffect(() => {
-    fetchReports();
-  }, []);
+    fetchReports()
+  }, [])
+
 
   const fetchReports = async () => {
     try {
       const response = await fetch("http://localhost:3000/admin/view-hazards", {
         headers: { "Authorization": `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setReports(data);
-      setLoading(false);
+      })
+      const data = await response.json()
+      setReports(data)
+      setLoading(false)
     } catch (err) {
-      console.error("Failed to fetch reports:", err);
-      setLoading(false);
+      console.error("Failed to fetch reports:", err)
+      setLoading(false)
     }
-  };
+  }
+
 
   // save the edited report back into the reports array
   async function handleSave(id) {
+    // added a note prompt to fill the status_updates table when admin makes changes
     const note = window.prompt("Enter a staff note for this status change:");
-
+   
     try {
       const response = await fetch(`http://localhost:3000/admin/update-hazard/${id}`, {
         method: "PUT",
@@ -55,72 +60,74 @@ function StaffDashboard() {
           description: editedDescription,
           note: note || "Updated via Staff Dashboard"
         })
-      });
+      })
+
 
       if (response.ok) {
-        alert("Report updated and logged in database!");
-        setEditingId(null);
-        fetchReports();
+        alert("Report updated and logged in database!")
+        setEditingId(null)
+        fetchReports() // Refresh the list
       }
     } catch (err) {
-      alert("Error updating report");
+      alert("Error updating report")
     }
   }
 
+
   // remove a report from the list
   async function handleDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this report?")) return;
+    if (!window.confirm("Are you sure you want to delete this report?")) return
+
 
     try {
       const response = await fetch(`http://localhost:3000/admin/delete-hazard/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
-      });
+      })
+
 
       if (response.ok) {
-        setReports(reports.filter((r) => r.id !== id));
+        setReports(reports.filter((r) => r.id !== id))
       }
     } catch (err) {
-      console.error("Delete failed:", err);
+      console.error("Delete failed:", err)
     }
   }
 
+
   // open the edit form for one report
   function handleEditClick(report) {
-    setEditingId(report.id);
-    setEditedCategory(report.category);
-    setEditedDescription(report.description);
-    setEditedStatus(report.status);
+    setEditingId(report.id)
+    setEditedCategory(report.category)
+    setEditedDescription(report.description)
+    setEditedStatus(report.status)
   }
 
-  if (loading) return <p>Loading reports...</p>;
+
+  if (loading) return <p>Loading reports...</p>
+
 
   return (
-    <div style={{ padding: "20px", position: "relative" }}>
+    <div style={{ padding: "20px" }}>
       <h1>Staff Dashboard</h1>
-
+     
       {/* Container fix: relative positioning and z-index keeps the map from overlapping the latest reports */}
-      <div
-        style={{
-          position: "relative",
-          height: "600px",
-          width: "100%",
-          marginBottom: "60px",
-          zIndex: 1,
-          overflow: "hidden",
-          borderRadius: "8px",
-          border: "1px solid #ddd"
-        }}
-      >
+      <div style={{
+        position: "relative",
+        height: "600px",
+        width: "100%",
+        marginBottom: "60px",
+        zIndex: 1,
+        overflow: "hidden",
+        borderRadius: "8px",
+        border: "1px solid #ddd"
+      }}>
         <Map />
       </div>
 
-      {/* TODO: Replace selectedReportId with map marker selection */}
-      <div style={{ position: "absolute", top: "90px", right: "20px", zIndex: 1000 }}>
-        <IssueChatBox reportId={selectedReportId} role="Admin" />
-      </div>
 
       <h2 style={{ marginTop: "20px", clear: "both" }}>Manage Reports</h2>
+
 
       {reports.length === 0 ? (
         <p>No active reports at the moment.</p>
@@ -133,16 +140,17 @@ function StaffDashboard() {
               padding: "15px",
               marginTop: "15px",
               borderRadius: "8px",
-              display: "flex",
+              display: "flex", // added flex so image sits next to text
               justifyContent: "space-between",
               alignItems: "center",
               backgroundColor: "#fff",
               position: "relative",
-              zIndex: 2
+              zIndex: 2 // ensures reports sit above any map coordinate overlaps
             }}
           >
             {editingId === report.id ? (
               <div style={{ flex: 1 }}>
+                {/* edit form for one report */}
                 <div>
                   <label>Status</label>
                   <br />
@@ -153,7 +161,9 @@ function StaffDashboard() {
                   </select>
                 </div>
 
+
                 <br />
+
 
                 <div>
                   <label>Description</label>
@@ -165,7 +175,9 @@ function StaffDashboard() {
                   />
                 </div>
 
+
                 <br />
+
 
                 <button onClick={() => handleSave(report.id)}>Save</button>
                 <button
@@ -177,49 +189,34 @@ function StaffDashboard() {
               </div>
             ) : (
               <div style={{ flex: 1 }}>
+                {/* normal report display */}
                 <p><strong>ID:</strong> {report.id}</p>
                 <p><strong>Category:</strong> {report.category}</p>
                 <p><strong>Description:</strong> {report.description}</p>
                 <p><strong>Location:</strong> {report.location_name}</p>
-                <p>
-                  <strong>Status:</strong>{" "}
-                  <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>
-                    {report.status}
-                  </span>
-                </p>
+                <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
                 <p><strong>Reporter:</strong> {report.reporter_email}</p>
+
 
                 <button onClick={() => handleEditClick(report)}>Update Status</button>
                 <button
                   onClick={() => handleDelete(report.id)}
-                  style={{
-                    marginLeft: "10px",
-                    backgroundColor: "#ff4d4d",
-                    color: "white",
-                    border: "none",
-                    padding: "5px 10px",
-                    borderRadius: "4px",
-                    cursor: "pointer"
-                  }}
+                  style={{ marginLeft: "10px", backgroundColor: "#ff4d4d", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
                 >
                   Delete
                 </button>
               </div>
             )}
 
+
+            {/* if an image exists in the database show it on the right side of the card */}
             {report.image_url && (
               <div style={{ marginLeft: "20px", textAlign: "center" }}>
                 <a href={`http://localhost:3000${report.image_url}`} target="_blank" rel="noreferrer">
                   <img
                     src={`http://localhost:3000${report.image_url}`}
                     alt="Hazard"
-                    style={{
-                      width: "140px",
-                      height: "140px",
-                      objectFit: "cover",
-                      borderRadius: "6px",
-                      border: "1px solid #eee"
-                    }}
+                    style={{ width: "140px", height: "140px", objectFit: "cover", borderRadius: "6px", border: "1px solid #eee" }}
                   />
                 </a>
                 <p style={{ fontSize: "11px", color: "#666", marginTop: "5px" }}>View Full Image</p>
@@ -229,7 +226,8 @@ function StaffDashboard() {
         ))
       )}
     </div>
-  );
+  )
 }
 
-export default StaffDashboard;
+
+export default StaffDashboard
