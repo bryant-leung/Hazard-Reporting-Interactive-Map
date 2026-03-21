@@ -12,17 +12,15 @@ function ResidentDashboard() {
 
 
   return (
-    <div>
-
-
-      <h1>Resident Dashboard</h1>
+    <div >
+      <h1 style={{ marginTop: "0" }}>Resident Dashboard</h1>
 
 
       <p>hazard list will go here</p>
 
 
       {/* map added here so residents can view hazards on dashboard */}
-      <div style={{ marginTop: "20px", marginBottom: "20px", colour: "#333" }}>
+      <div style={{marginBottom: "20px", colour: "#333" }}>
         <Map />
       </div>
 

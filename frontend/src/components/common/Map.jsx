@@ -55,6 +55,9 @@ const MapComponent = () => {
     const markers = [];
     const [selectedReport, setSelectedReport] = useState(null);
     const currentMarkerRef = useRef(null);
+    const [messages, setMessages] = useState([]);
+    const [chatSort, setChatSort] = useState("hot");
+    const [newMessage, setNewMessage] = useState("");
     function get_dates(range) { //calculate the start and end dates we should pull from the database based on the given range, using the current date
         const start = new Date();
         const end = new Date();
@@ -363,8 +366,54 @@ const MapComponent = () => {
         };
     }, [user, highContrast]);
 
-    if (!user) return <div>Please log in to view the map.</div>;
+    useEffect(() => {
+        if (!selectedReport) return;
+        fetch(`http://localhost:3000/chat-messages?reportId=${selectedReport.id}&sort=${chatSort}`)
+            .then(res => res.json())
+            .then(data => {
+                setMessages(data);
+            })
+            .catch(err => console.error("Error loading chat messages:", err));
+        
+        
+    }, [selectedReport, chatSort]);
 
+    if (!user) return <div>Please log in to view the map.</div>;
+    const sendMessage = async () => {
+            if (!newMessage.trim() || !selectedReport) return;
+            console.log("Sending message:", newMessage);
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch("http://localhost:3000/send-messages", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"  
+                    },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        hazard_id: selectedReport.id,
+                        message: newMessage
+                    })
+                });
+                const text = await res.text();
+let data;
+try {
+    data = JSON.parse(text);
+} catch {
+    data = text;
+}
+                console.log("Message send response:", data);
+                if (res.ok) {
+                    setMessages(prev => [data, ...prev]);
+                    setNewMessage("");
+                } else {
+                    console.error(data);
+                }
+            } catch (err) {
+                console.error("Error sending message:", err);
+            }
+        };
     return (
         <>
             {user.role === "guest" && (
@@ -406,8 +455,9 @@ const MapComponent = () => {
                 <div className={`report-panel ${selectedReport ? "show" : ""}`}>
                     {selectedReport && (
                         <>
-                            <h3>{selectedReport.cat}</h3>
-                            <p>{selectedReport.desc}</p>
+                            <h3 style={{ marginTop: "0" }}>{selectedReport.cat} hazard</h3>
+                            <p ><b>Location:</b> <em>{selectedReport.location}</em></p>
+                            <p><b>Description:</b>   {selectedReport.desc}</p>
                             <p>
                                 <strong>Status: </strong>
                                 <span style={{
@@ -458,11 +508,67 @@ const MapComponent = () => {
                                     }[selectedReport.value] ?? "Unknown"}
                                 </span>
                             </p>
+                            {messages.length > 0 && (
+                                <>
+                                    <select 
+                                        value={chatSort} 
+                                        onChange={(e) => setChatSort(e.target.value)}
+                                        style={{ marginBottom: "10px", marginLeft: "5px" }}
+                                    >
+                                        <option value="newest">Newest</option>
+                                        <option value="oldest">Oldest</option>
+                                        <option value="hot">Hot</option>
+                                    </select>
+                                </>
+                            )}
+                            <div style={{ maxHeight: "230px", overflowY: "auto" }}>
+                                {messages.length === 0 ? (
+                                    <p>No messages yet.</p> 
+                                ) : (
+                                    messages.map((msg, i) => (
+                                        <div key={i}>
+                                            <hr></hr>
+                                            <strong>{msg.email}</strong>
+                                            <p>{msg.message}</p>
+                                            <small>{new Date(msg.created_at).toLocaleString()}</small>
+                                            <p>👍 {msg.vote}</p>
+                                        </div>
+                                    ))
+                                )}<hr></hr>
+                            </div>
+                            <div style={{ position: "absolute", bottom: "10px", width: "93%" }}>
+                                <textarea
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Write a message..."
+                                    rows="2"
+                                    style={{
+                                        width: "100%",
+                                        padding: "8px 60px 8px 8px",
+                                        borderRadius: "6px",
+                                        border: "1px solid #ccc",
+                                        resize: "none",
+                                        boxSizing: "border-box"
+                                    }}
+                                />
 
-            <p>{selectedReport.desc}</p>
-
-            <p></p>
-
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        sendMessage();
+                                    }}
+                                    style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        bottom: "10px",
+                                        padding: "6px 10px",
+                                        borderRadius: "6px",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Send
+                                </button>
+                            </div>
                             <br /><br />
                             <button onClick={() => setSelectedReport(null)}>
                                 <img src={close} alt="Close" style={{ width: "16px", height: "16px" }} />

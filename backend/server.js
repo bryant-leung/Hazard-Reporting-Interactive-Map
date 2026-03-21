@@ -128,23 +128,61 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT latitude, longitude, category, description, status, severity FROM hazards WHERE status != 'Fixed'";
+        let queryText = "SELECT id, latitude, longitude, category, description, status, severity, location_name FROM hazards WHERE status != 'Fixed'";
         let params = [];
         if (start_time && end_time) {
-            queryText += " WHERE created_at BETWEEN $1 AND $2";
+            queryText += " AND created_at BETWEEN $1 AND $2";
             params = [start_time, end_time];
         }
         const result = await pool.query(queryText, params);
         res.json(result.rows.map(row => ({
+            id: row.id,
             lat: parseFloat(row.latitude),
             lng: parseFloat(row.longitude),
             cat: row.category,
             desc: row.description,
             status: row.status,
-            value: row.severity
+            value: row.severity,
+            location: row.location_name
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
+    }
+});
+
+app.get("/chat-messages", async (req, res) => {
+    const { reportId, sort } = req.query;
+    try {
+        let queryText = "SELECT c.created_at, c.message, u.email, c.vote FROM chat_message c,users u WHERE c.hazard_id = $1 AND c.user_id = u.id";
+        let params = [reportId];
+        console.log("reportId:", reportId);
+        console.log("sort:", sort);
+
+        if (sort === "newest") {
+            queryText += " ORDER BY c.created_at DESC";
+        } else if (sort === "oldest") {
+            queryText += " ORDER BY c.created_at ASC";
+        } else if (sort === "hot") {
+            queryText += " ORDER BY c.vote DESC";
+        }
+        const result = await pool.query(queryText, params);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).send("Error fetching chat messages: " + err.message);
+    }
+});
+
+app.post("/send-messages", verifyToken, async (req, res) => {
+    const { user_id, hazard_id, message } = req.body;
+    try {
+        const result = await pool.query(
+            "INSERT INTO chat_message (user_id, hazard_id, message) VALUES ($1, $2, $3) RETURNING *",
+            [user_id, hazard_id, message]
+        );
+        console.log("New chat message logged:", result.rows[0]);
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        res.status(500).send("Error posting chat message: " + err.message);
     }
 });
 
