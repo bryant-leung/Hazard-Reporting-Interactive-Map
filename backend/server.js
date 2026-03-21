@@ -128,7 +128,7 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT id, latitude, longitude, category, description, status, severity, location_name FROM hazards WHERE status != 'Fixed'";
+        let queryText = "SELECT id, latitude, longitude, category, description, status, severity, location_name, image_url FROM hazards WHERE status != 'Fixed'";
         let params = [];
         if (start_time && end_time) {
             queryText += " AND created_at BETWEEN $1 AND $2";
@@ -143,7 +143,8 @@ app.get("/heatmap-data", async (req, res) => {
             desc: row.description,
             status: row.status,
             value: row.severity,
-            location: row.location_name
+            location: row.location_name,
+            imageUrl: row.image_url
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);

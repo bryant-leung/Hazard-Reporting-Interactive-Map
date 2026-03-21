@@ -175,6 +175,21 @@ const MapComponent = () => {
             .then(data => {
                 data.forEach(report => {
                     const marker = L.marker([report.lat, report.lng]);
+                    const fullImageUrl = report.imageUrl
+                        ? `http://localhost:3000${report.imageUrl}`
+                        : null;
+                    let popupContent = "";
+                    if (fullImageUrl) {
+                        popupContent += `
+                            <img src="${fullImageUrl}" 
+                                alt="Report Image" 
+                                style="width:200px; height:auto; margin-top:5px;" />
+                        `;
+                    } else {
+                        popupContent += `<p>No image available</p>`;
+                    }
+                    popupContent += `</div>`;
+                    marker.bindPopup(popupContent);
                     marker.on("click", (e) => {
                         L.DomEvent.stopPropagation(e);
                         if (currentMarkerRef.current) {
@@ -182,12 +197,13 @@ const MapComponent = () => {
                             currentMarkerRef.current = null;
                         }
                         setSelectedReport(report);
+                        marker.openPopup();
                     });
                     markers.push(marker);
                     marker.addTo(map);
-                    markers_ref.current.push(marker); // storing markers for switching
+                    markers_ref.current.push(marker);
                 });
-                points_ref.current = data.map(p => [p.lat, p.lng, p.value]); //storing the values from the markers
+                points_ref.current = data.map(p => [p.lat, p.lng, p.value]);
             })
             .catch(error => console.error("Error loading existing reports:", error));
 
@@ -446,7 +462,6 @@ const MapComponent = () => {
                 } else {
                     console.error("Vote update failed:", data);
                 }
-                console.log("Vote update response:", data);
             } catch (err) {
                 console.error("Error updating vote:", err);
             }
