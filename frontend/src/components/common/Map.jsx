@@ -415,6 +415,45 @@ const MapComponent = () => {
         };
     }, [user, highContrast]);
 
+        function goToMyLocation() {
+        if (!map_ref.current || !navigator.geolocation) {
+            alert("Geolocation is not supported on this browser.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                map_ref.current.flyTo([lat, lng], 18, { duration: 0.8 });
+
+                if (map_ref.current._myLocationMarker) {
+                    map_ref.current.removeLayer(map_ref.current._myLocationMarker);
+                }
+
+                const myLocationMarker = L.marker([lat, lng], { icon: userIcon })
+                    .addTo(map_ref.current)
+                    .bindPopup("You are here!")
+                    .openPopup();
+
+                map_ref.current._myLocationMarker = myLocationMarker;
+
+                setClickedCoords({
+                    lat: lat.toFixed(5),
+                    lng: lng.toFixed(5)
+                });
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                alert("Unable to get your current location.");
+            },
+            {
+                enableHighAccuracy: true
+            }
+        );
+    }
+
     useEffect(() => {
         if (!selectedReport) return;
         fetch(`http://localhost:3000/chat-messages?reportId=${selectedReport.id}&sort=${chatSort}`)
@@ -519,10 +558,30 @@ const MapComponent = () => {
             )}
 
             <div
-                className={highContrast ? "high-contrast" : ""}
-                style={{ position: "relative", height: "580px", width: "100%" }}
-            >
-                <div id="map" style={{ height: "100%", width: "100%" }}></div>
+    className={highContrast ? "high-contrast" : ""}
+    style={{ position: "relative", height: "580px", width: "100%" }}
+>
+    <button
+        onClick={goToMyLocation}
+        style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            zIndex: 1000,
+            backgroundColor: highContrast ? "#000" : "#fff",
+            color: highContrast ? "#fff" : "#000",
+            border: highContrast ? "2px solid #fff" : "1px solid #ccc",
+            borderRadius: "6px",
+            padding: "8px 12px",
+            cursor: "pointer",
+            fontWeight: "bold"
+        }}
+    >
+        My Location
+    </button>
+
+    <div id="map" style={{ height: "100%", width: "100%" }}></div>
+               
 
                 {clickedCoords && (
                     <div
