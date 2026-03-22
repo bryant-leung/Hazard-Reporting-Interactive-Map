@@ -1,23 +1,33 @@
-// Store the current user temporarily in memory while they use the site.
 import { createContext, useState, useContext, useEffect } from 'react'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [highContrast, setHighContrast] = useState(false)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user')
+    return saved ? JSON.parse(saved) : null
+  })
+  const [highContrast, setHighContrast] = useState(() => {
+    return localStorage.getItem('highContrast') === 'true'
+  })
 
   const login = (userData) => {
     setUser(userData)
+    localStorage.setItem('user', JSON.stringify(userData))
   }
 
   const logout = () => {
     setUser(null)
+    localStorage.removeItem('user')
     localStorage.removeItem('token')
   }
 
   const toggleHighContrast = () => {
-    setHighContrast(prev => !prev)
+    setHighContrast(prev => {
+      const next = !prev
+      localStorage.setItem('highContrast', next)
+      return next
+    })
   }
 
   useEffect(() => {
