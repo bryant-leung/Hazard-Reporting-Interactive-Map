@@ -36,7 +36,14 @@ function RegisterPage() {
       })
 
       if (response.ok) {
-        login({ email, role })
+        const loginResponse = await fetch('http://localhost:3000/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        })
+        const userData = await loginResponse.json()
+        localStorage.setItem('token', userData.token)
+        login(userData)
         navigate(role === 'staff' ? '/staff' : '/resident')
       } else {
         const errorText = await response.text()
