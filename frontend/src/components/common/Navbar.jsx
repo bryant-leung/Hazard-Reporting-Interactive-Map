@@ -1,10 +1,27 @@
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 function Navbar() {
   const { user, logout, highContrast, toggleHighContrast } = useAuth()
+  const [isLargeUI, setIsLargeUI] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    const savedLargeUI = localStorage.getItem('largeUI') === 'true'
+    if (savedLargeUI) {
+      setIsLargeUI(true)
+      document.body.classList.add('large-ui')
+    }
+  }, [])
+
+  const toggleLargeUI = () => {
+    const newState = !isLargeUI
+    setIsLargeUI(newState)
+    localStorage.setItem('largeUI', newState)
+    document.body.classList.toggle('large-ui')
+  }
 
   const handleLogout = () => {
     logout()
@@ -27,6 +44,24 @@ function Navbar() {
       </span>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        {user && user.role === 'resident' && (
+          <Link to="/my-reports" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>
+            My Reports
+          </Link>
+        )}
+
+        <button onClick={toggleLargeUI} style={{
+          background: 'none',
+          border: '1px solid rgba(255,255,255,0.4)',
+          color: 'rgba(255,255,255,0.8)',
+          padding: '5px 12px',
+          cursor: 'pointer',
+          borderRadius: '6px',
+          fontSize: '13px'
+        }}>
+          {isLargeUI ? 'Standard Size' : 'Enlarge UI'}
+        </button>
+
         <button onClick={toggleHighContrast} style={{
           background: 'none',
           border: '1px solid rgba(255,255,255,0.4)',

@@ -97,7 +97,7 @@ body {
 .form-textarea:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .form-textarea {
@@ -255,6 +255,104 @@ body {
   border-radius: var(--radius);
 }
 
+/* ── Leaflet overrides ────────────────────────── */
+.leaflet-marker-icon {
+  transition: opacity 0.3s ease;
+}
+
+.leaflet-touch .leaflet-bar a,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.leaflet-touch .leaflet-bar a:hover {
+  color: #000000 !important;
+  background-color: #f4f4f4 !important;
+}
+
+.leaflet-container .leaflet-popup-content-wrapper .leaflet-popup-content a {
+  color: #0000EE !important;
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+
+.leaflet-container .leaflet-popup-content a:hover {
+  color: #000080 !important;
+  text-decoration: none !important;
+}
+
+/* ── Report panel (map overlay) ───────────────── */
+.report-panel {
+  background: #f5f5f5;
+  color: #000;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 350px;
+  max-height: 540px;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  transform: translateX(120%);
+  transition: transform 0.35s ease;
+  z-index: 2000;
+}
+
+.report-panel.show {
+  transform: translateX(0);
+}
+
+.report-panel button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.vote-button {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  display: inline-block;
+  width: auto;
+  height: auto;
+  margin: 10px 0;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* ── Large UI mode ────────────────────────────── */
+body.large-ui {
+  font-size: 1.15rem !important;
+}
+
+body.large-ui button,
+body.large-ui .leaflet-bar a {
+  padding: 12px 20px !important;
+  min-height: 48px !important;
+  min-width: 48px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.large-ui input,
+body.large-ui select,
+body.large-ui textarea {
+  padding: 12px !important;
+  font-size: 1.1rem !important;
+}
+
+body.large-ui .leaflet-popup-content {
+  font-size: 1.1rem !important;
+  width: 320px !important;
+}
+
 /* ── High contrast overrides ──────────────────── */
 body.high-contrast {
   background-color: #000 !important;
@@ -328,4 +426,36 @@ body.high-contrast .error-msg {
   color: #fff !important;
   background-color: #000 !important;
   border: 1px solid #fff !important;
+}
+
+body.high-contrast .report-panel {
+  background: #000 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+body.high-contrast .report-panel hr {
+  border: none;
+  border-top: 1px solid #fff;
+}
+
+body.high-contrast .leaflet-popup-content-wrapper {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  border-radius: 16px;
+}
+
+body.high-contrast .leaflet-popup-content {
+  color: #fff !important;
+}
+
+body.high-contrast .leaflet-popup-tip {
+  background: #000 !important;
+}
+
+body.high-contrast a.leaflet-popup-close-button {
+  color: #fff !important;
+  background: #000 !important;
+  border-radius: 10px !important;
 }

@@ -1,0 +1,2 @@
+M.H Issues noticed - clicking on the same pin multiple times to submit and cancel submit a report can lead to duplicates being inputted, need a safeguard to fix this
+2 - When you add a new report, since the data is not refreshed for performance, this will not be considered when generating the heatmap, need to add to the data ref when addinga report

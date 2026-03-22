@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import Optional
-from fastapi import FastAPI
-from database import Base, engine
 from models import  Hazard
-from sqlalchemy.orm import Session, DateTime
+from sqlalchemy.orm import Session
 
 #Purpose of this function is to grab and send the required data from the database to the frontend, where the heatmap will be generated with heatmap.js
 
@@ -18,11 +16,8 @@ def get_heatmap_data(db: Session, start_time: Optional[datetime], end_time: Opti
 
     hazards = query.all()
 
-    return [
-        {
+    return [{
             "lat": hazard.latitude,
             "lng": hazard.longitude,
             "value": 1 # to be updated when we add a severity score to the database schema
-        }
-        for hazard in hazards
-    ]
+        } for hazard in hazards ]

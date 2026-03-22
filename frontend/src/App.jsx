@@ -7,21 +7,19 @@ import ResidentDashboard from './pages/ResidentDashboard'
 import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
 import ReportHazardPage from './pages/ReportHazardPage'
+import MyReports from './pages/MyReportsPage'
 
 
 function AppRoutes() {
   const { user } = useAuth()
 
-  
   return (
     <Routes>
       <Route path="/" element={
         user ? (
           user.role === 'staff'
             ? <Navigate to="/staff" />
-            : user.role === 'resident'
-              ? <Navigate to="/resident" />
-              : <Navigate to="/resident" />
+            : <Navigate to="/resident" />
         ) : (
           <LoginPage />
         )
@@ -31,13 +29,16 @@ function AppRoutes() {
         user && (user.role === 'resident' || user.role === 'guest') ? <ResidentDashboard /> : <Navigate to="/" />
       } />
       <Route path="/report-hazard" element={
-  user && (user.role === 'resident' || user.role === 'staff') ? <ReportHazardPage /> : <Navigate to="/" />
-} />
+        user && (user.role === 'resident' || user.role === 'staff') ? <ReportHazardPage /> : <Navigate to="/" />
+      } />
       <Route path="/staff" element={
         user && user.role === 'staff' ? <StaffDashboard /> : <Navigate to="/" />
       } />
-       <Route path="/map" element={
+      <Route path="/map" element={
         user ? <Map /> : <Navigate to="/" />
+      } />
+      <Route path="/my-reports" element={
+        user && user.role === 'resident' ? <MyReports /> : <Navigate to="/" />
       } />
     </Routes>
   )

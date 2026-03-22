@@ -25,8 +25,10 @@ class Hazard(Base):
     status = Column(
         Enum(HazardStatus, name="hazard_status"), 
         nullable=False, 
-        default="Reported"
+        default=HazardStatus.Reported
     )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    
+    location_name = Column(String, nullable=True)
