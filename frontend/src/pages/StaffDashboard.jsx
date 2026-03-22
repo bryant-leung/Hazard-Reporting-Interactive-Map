@@ -10,6 +10,9 @@ function StaffDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterCategory, setFilterCategory] = useState("All")
 
+  const [filterSeverity, setFilterSeverity] = useState("All")
+  const [sortSeverity, setSortSeverity] = useState("None")
+
   const [editingId, setEditingId] = useState(null)
   const [editedCategory, setEditedCategory] = useState("")
   const [editedSeverity, setEditedSeverity] = useState("")
@@ -89,15 +92,26 @@ function StaffDashboard() {
     setEditedStatus(report.status)
   }
 
-  const filteredReports = reports.filter((report) => {
+  const filteredReports = reports
+  .filter((report) => {
     const matchesSearch = 
       (report.description && report.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (report.location_name && report.location_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (report.id && report.id.toString().includes(searchQuery));
 
     const matchesCategory = filterCategory === "All" || report.category === filterCategory;
+    const matchesSeverity = filterSeverity === "All" || String(report.severity || report.value) === filterSeverity;
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesSeverity;
+  })
+  .sort((a, b) => {
+    if (sortSeverity === "HighToLow") {
+      return Number(b.severity || b.value) - Number(a.severity || a.value);
+    }
+    if (sortSeverity === "LowToHigh") {
+      return Number(a.severity || a.value) - Number(b.severity || b.value);
+    }
+    return 0;
   });
 
   if (loading) return <p>Loading reports...</p>
@@ -162,6 +176,46 @@ function StaffDashboard() {
             <option value="Other">Other</option>
           </select>
         </div>
+
+        <div style={{ minWidth: "200px" }}>
+  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Filter Severity</label>
+  <select 
+    value={filterSeverity} 
+    onChange={(e) => setFilterSeverity(e.target.value)}
+    style={{ 
+      width: "100%", 
+      padding: "10px", 
+      borderRadius: "6px", 
+      border: "1px solid #ccc" 
+    }}
+  >
+    <option value="All">All Severity Levels</option>
+    <option value="1">1 - Mild Inconvenience</option>
+    <option value="2">2 - Major Inconvenience</option>
+    <option value="3">3 - Potentially Dangerous</option>
+    <option value="4">4 - Dangerous</option>
+    <option value="5">5 - Incredibly Dangerous</option>
+  </select>
+</div>
+
+<div style={{ minWidth: "200px" }}>
+  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Sort Severity</label>
+  <select 
+    value={sortSeverity} 
+    onChange={(e) => setSortSeverity(e.target.value)}
+    style={{ 
+      width: "100%", 
+      padding: "10px", 
+      borderRadius: "6px", 
+      border: "1px solid #ccc" 
+    }}
+  >
+    <option value="None">Default</option>
+    <option value="HighToLow">Highest to Lowest</option>
+    <option value="LowToHigh">Lowest to Highest</option>
+  </select>
+</div>
+
       </div>
 
       <h2 style={{ marginTop: "20px", clear: "both" }}>Manage Reports ({filteredReports.length})</h2>
@@ -237,7 +291,7 @@ function StaffDashboard() {
               <div style={{ flex: 1 }}>
                 <p><strong>ID:</strong> {report.id}</p>
                 <p><strong>Category:</strong> {report.category}</p>
-                <p><strong>Severity:</strong> {report.severity}</p>
+                <p><strong>Severity:</strong> {report.severity || report.value}</p>
                 <p><strong>Description:</strong> {report.description}</p>
                 <p><strong>Location:</strong> {report.location_name}</p>
                 <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
