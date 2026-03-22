@@ -266,7 +266,7 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
         const old_status = currentData.rows[0].status;
 
         await pool.query(
-            "UPDATE hazards SET status = $1, description = $2, severity = $4 WHERE id = $3",
+            "UPDATE hazards SET status = $1, description = $2, severity = $3 WHERE id = $4",
             [status, description, severity, id]
         );
 

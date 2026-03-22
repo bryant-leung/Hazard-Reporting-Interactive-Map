@@ -609,29 +609,29 @@ const MapComponent = () => {
                                                 : selectedReport.value === 2
                                                 ? "#00ffff"
                                                 : selectedReport.value === 3
-                                                ? "#00ff00"
+                                                ? "#d4ff00"
                                                 : selectedReport.value === 4
-                                                ? "#ffff00"
+                                                ? "#fbd139"
                                                 : "#ff0000"
                                             : selectedReport.value === 1
                                             ? "#a3a9fd"
                                             : selectedReport.value === 2
                                             ? "#97f7e9"
                                             : selectedReport.value === 3
-                                            ? "#d3fcbd"
+                                            ? "#fafcbd"
                                             : selectedReport.value === 4
-                                            ? "#fcffa9"
+                                            ? "#ffc370"
                                             : "#f8d7da",
                                         color: highContrast
                                             ? "#000"
                                             : selectedReport.value === 1
                                             ? "#000a97"
                                             : selectedReport.value === 2
-                                            ? "#009c85"
+                                            ? "#017b68"
                                             : selectedReport.value === 3
-                                            ? "#3cab00"
+                                            ? "#777b03"
                                             : selectedReport.value === 4
-                                            ? "#a8ad0a"
+                                            ? "#6e5100"
                                             : "#721c24"
                                     }}
                                 >

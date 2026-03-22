@@ -12,6 +12,7 @@ function StaffDashboard() {
 
   const [editingId, setEditingId] = useState(null)
   const [editedCategory, setEditedCategory] = useState("")
+  const [editedSeverity, setEditedSeverity] = useState("")
   const [editedDescription, setEditedDescription] = useState("")
   const [editedStatus, setEditedStatus] = useState("")
 
@@ -48,6 +49,7 @@ function StaffDashboard() {
         body: JSON.stringify({
           status: editedStatus,
           description: editedDescription,
+          severity : editedSeverity,
           note: note || "Updated via Staff Dashboard"
         })
       })
@@ -82,6 +84,7 @@ function StaffDashboard() {
   function handleEditClick(report) {
     setEditingId(report.id)
     setEditedCategory(report.category)
+    setEditedSeverity(report.value)
     setEditedDescription(report.description)
     setEditedStatus(report.status)
   }
@@ -105,7 +108,7 @@ function StaffDashboard() {
      
       <div style={{
         position: "relative",
-        height: "600px",
+        height: "623px",
         width: "100%",
         marginBottom: "60px",
         zIndex: 1,
@@ -208,6 +211,20 @@ function StaffDashboard() {
 
                 <br />
 
+                <div>
+                  <label>Severity</label>
+                  <br />
+                  <select value={editedSeverity} onChange={(e) => setEditedSeverity(e.target.value)}>
+                    <option value= "1">1 - Mild Inconvenience</option>
+                    <option value="2">2 - Major Inconvenience</option>
+                    <option value="3">3 - Potentially Dangerous</option>
+                    <option value="4">4 - Dangerous</option>
+                    <option value="5">5 - Incredibly Dangerous</option>
+                  </select>
+                </div>
+
+                <br />
+
                 <button onClick={() => handleSave(report.id)}>Save</button>
                 <button
                   onClick={() => setEditingId(null)}
@@ -220,6 +237,7 @@ function StaffDashboard() {
               <div style={{ flex: 1 }}>
                 <p><strong>ID:</strong> {report.id}</p>
                 <p><strong>Category:</strong> {report.category}</p>
+                <p><strong>Severity:</strong> {report.severity}</p>
                 <p><strong>Description:</strong> {report.description}</p>
                 <p><strong>Location:</strong> {report.location_name}</p>
                 <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
