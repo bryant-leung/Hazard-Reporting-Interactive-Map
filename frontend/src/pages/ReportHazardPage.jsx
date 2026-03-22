@@ -18,6 +18,7 @@ function ReportHazardPage() {
   const [category, setCategory] = useState("Infrastructure"); 
   const [latitude, setLatitude] = useState(locationState.state?.lat || "") // Pre-fill with map lat if available
   const [longitude, setLongitude] = useState(locationState.state?.lng || "") 
+  const [hazardImage, setHazardImage] = useState(null)
 
   // this runs when the form is submitted
   const handleSubmit = async (e) => {
@@ -27,28 +28,29 @@ function ReportHazardPage() {
     // Get jwt token before allowing report submission
     const token = localStorage.getItem("token");
 
-    const hazardData = {
-      user_id: user.id,                 
-      hazard_category: category,        
-      description: description, 
-      severity: severity,
-      location_name: location,   
-      latitude: latitude ? parseFloat(latitude) : null,  
-      longitude: longitude ? parseFloat(longitude) : null 
-    }
+    const formData = new FormData()
 
-    console.log("Hazard Data being sent to Node.js (Port 3000):", hazardData);
+formData.append("reporter_user_id", user.id)
+formData.append("hazard_category", category)
+formData.append("description", description)
+formData.append("severity", severity)
+formData.append("location_name", location)
+formData.append("latitude", latitude ? parseFloat(latitude) : "")
+formData.append("longitude", longitude ? parseFloat(longitude) : "")
+
+if (hazardImage) {
+  formData.append("hazard_image", hazardImage)
+}
 
     try {
-      // Switched to Node.js Port 3000 
+      
       const response = await fetch(`http://localhost:3000/report-hazard`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(hazardData)
-      })
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${token}`
+  },
+  body: formData
+})
 
       if (response.ok) {
         alert("Hazard reported successfully!")
@@ -189,6 +191,18 @@ function ReportHazardPage() {
         </div>
 
         <br />
+
+        <div>
+  <label>Upload Photo (Optional)</label>
+  <br />
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setHazardImage(e.target.files[0])}
+  />
+</div>
+
+<br />
 
         {/* Loading state added to button for better UX */}
         <button type="submit" disabled={loading}>

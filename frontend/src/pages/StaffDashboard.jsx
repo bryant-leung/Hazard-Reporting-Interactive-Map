@@ -133,6 +133,20 @@ function StaffDashboard() {
         <Map />
       </div>
 
+      <button
+  onClick={() => navigate("/report-hazard")}
+  style={{
+    marginBottom: "20px",
+    padding: "8px 12px",
+    cursor: "pointer",
+    backgroundColor: "#f0f0f0",
+    border: "1px solid #ccc",
+    borderRadius: "4px"
+  }}
+>
+  Report Hazard
+</button>
+
       <div style={{ 
         display: "flex", 
         gap: "15px", 
