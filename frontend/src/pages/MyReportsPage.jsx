@@ -30,7 +30,7 @@ function MyReportsPage() {
     <div style={{ padding: "20px" }}>
       {/* 3. Add the Back Button at the top */}
       <button 
-        onClick={() => navigate('/map')} 
+        onClick={() => navigate('/resident')} 
         style={{
           marginBottom: '20px',
           padding: '8px 16px',
