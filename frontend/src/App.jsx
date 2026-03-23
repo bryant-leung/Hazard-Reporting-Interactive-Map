@@ -8,6 +8,7 @@ import StaffDashboard from './pages/StaffDashboard'
 import Map from './components/common/Map'
 import ReportHazardPage from './pages/ReportHazardPage'
 import MyReports from './pages/MyReportsPage'
+import UpdatesPage from './pages/UpdatesPage';
 
 
 function AppRoutes() {
@@ -40,6 +41,9 @@ function AppRoutes() {
       <Route path="/my-reports" element={
         user && (user.role === 'resident' || user.role === 'staff') ? <MyReports /> : <Navigate to="/" />
       } />
+      <Route path="/updates" element={
+        user ? <UpdatesPage /> : <Navigate to="/" />
+} />
     </Routes>
   )
 }

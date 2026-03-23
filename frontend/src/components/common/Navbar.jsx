@@ -39,15 +39,27 @@ function Navbar() {
       color: 'white',
       boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
     }}>
-      <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '0.05em', color: '#10b981' }}>
+      {/* FIXED: Turned CivicTrace into a Link so it acts as a "Home" button */}
+      <Link to="/" style={{ 
+        fontWeight: '700', 
+        fontSize: '16px', 
+        letterSpacing: '0.05em', 
+        color: '#10b981', 
+        textDecoration: 'none' 
+      }}>
         CivicTrace
-      </span>
+      </Link>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
         {user && (user.role === 'resident' || user.role === 'staff') && (
-          <Link to="/my-reports" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>
-            My Reports
-          </Link>
+          <>
+            <Link to="/updates" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>
+              Updates
+            </Link>
+            <Link to="/my-reports" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>
+              My Reports
+            </Link>
+          </>
         )}
 
         <button onClick={toggleLargeUI} style={{

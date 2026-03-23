@@ -151,6 +151,18 @@ app.get("/heatmap-data", async (req, res) => {
     }
 });
 
+app.get("/notifications", verifyToken, async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).send("Error fetching notifications: " + err.message);
+    }
+});
+
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
     try {
@@ -180,6 +192,15 @@ app.post("/send-messages", verifyToken, async (req, res) => {
             "INSERT INTO chat_message (user_id, hazard_id, message) VALUES ($1, $2, $3) RETURNING *",
             [user_id, hazard_id, message]
         );
+        
+        const hazardInfo = await pool.query("SELECT reporter_user_id FROM hazards WHERE id = $1", [hazard_id]);
+        if (hazardInfo.rows.length > 0 && hazardInfo.rows[0].reporter_user_id !== user_id) {
+            await pool.query(
+                "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
+                [hazardInfo.rows[0].reporter_user_id, `New comment on your report: "${message.substring(0, 20)}..."`, 'new_comment']
+            );
+        }
+
         console.log("New chat message logged:", result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -218,6 +239,14 @@ app.post("/update-vote", verifyToken, async (req, res) => {
                 [message_id, user_id]
             );
             action = "added";
+
+            const authorInfo = await pool.query("SELECT user_id, message FROM chat_message WHERE message_id = $1", [message_id]);
+            if (authorInfo.rows.length > 0 && authorInfo.rows[0].user_id !== user_id) {
+                await pool.query(
+                    "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
+                    [authorInfo.rows[0].user_id, `Someone liked your comment: "${authorInfo.rows[0].message.substring(0, 20)}..."`, 'comment_like']
+                );
+            }
         }
         res.status(200).json({
             action,
@@ -261,9 +290,11 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     const staff_id = req.user.id; 
 
     try {
-        const currentData = await pool.query("SELECT status FROM hazards WHERE id = $1", [id]);
+        const currentData = await pool.query("SELECT status, reporter_user_id, description FROM hazards WHERE id = $1", [id]);
         if (currentData.rows.length === 0) return res.status(404).send("Hazard not found");
         const old_status = currentData.rows[0].status;
+        const reporter_id = currentData.rows[0].reporter_user_id;
+        const hazard_desc = currentData.rows[0].description;
 
         await pool.query(
             "UPDATE hazards SET status = $1, description = $2, severity = $3 WHERE id = $4",
@@ -274,6 +305,13 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
             "INSERT INTO status_updates (hazard_id, staff_user_id, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5)",
             [id, staff_id, old_status, status, note || "Status updated via dashboard"]
         );
+
+        if (old_status !== status) {
+            await pool.query(
+                "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
+                [reporter_id, `Update: Your report "${hazard_desc.substring(0, 20)}..." is now ${status}.`, 'status_change']
+            );
+        }
 
         res.json({ message: "Update successful and logged" });
     } catch (err) {
