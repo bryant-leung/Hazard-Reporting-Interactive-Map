@@ -457,5 +457,7 @@ body.high-contrast .leaflet-popup-tip {
 body.high-contrast a.leaflet-popup-close-button {
   color: #fff !important;
   background: #000 !important;
-  border-radius: 10px !important;
+  border-radius: 20px !important;
+  right: 3px !important;
+  top: 2px !important;
 }
