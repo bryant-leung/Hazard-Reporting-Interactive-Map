@@ -154,8 +154,6 @@ app.get("/notifications", verifyToken, async (req, res) => {
 
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
-    console.log("reportId:", reportId);
-    console.log("sort:", sort);
     try {
         const result = await db.get_chat_messages(reportId,sort);
         res.json(result.rows);
@@ -188,11 +186,11 @@ app.post("/update-vote", verifyToken, async (req, res) => {
     try {
         const voted = await db.check_voted(message_id, user_id);
         let updatedMessage;
-        let voteRecord;
+        let voteRecord = null;
         let action;
         if (voted.rows.length > 0) {
             updatedMessage = await db.decrement_vote(message_id);
-            voteRecord = await db.delete_vote(message_id, user_id);
+            await db.delete_vote(message_id, user_id);
             action = "removed";
         } else {
             updatedMessage = await db.increment_vote(message_id);
@@ -201,14 +199,19 @@ app.post("/update-vote", verifyToken, async (req, res) => {
 
             const authorInfo = await db.get_message_author(message_id);
             if (authorInfo.rows.length > 0 && authorInfo.rows[0].user_id !== user_id) {
-                await db.insert_notification(authorInfo.rows[0].user_id, `Someone liked your comment: "${authorInfo.rows[0].message.substring(0, 20)}..."`,'comment_like');
+                await db.insert_notification(
+                    authorInfo.rows[0].user_id,
+                    `Someone liked your comment: "${authorInfo.rows[0].message.substring(0, 20)}..."`,
+                    'comment_like'
+                );
+            }
         }
         res.status(200).json({
             action,
             updatedMessage: updatedMessage.rows[0],
-            voteRecord: voteRecord.rows[0]
+            voteRecord: voteRecord ? voteRecord.rows[0] : null
         });
-    }
+
     } catch (err) {
         res.status(500).send("Error updating vote: " + err.message);
     }
