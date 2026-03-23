@@ -8,6 +8,7 @@ function ResidentDashboard() {
   const { user } = useAuth()
   const [hazards, setHazards] = useState([])
   const [loading, setLoading] = useState(true)
+  const [latestUpdate, setLatestUpdate] = useState(null) 
 
   useEffect(() => {
     fetch("http://localhost:3000/heatmap-data")
@@ -17,7 +18,20 @@ function ResidentDashboard() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+
+    if (user) {
+      const token = localStorage.getItem('token');
+      fetch("http://localhost:3000/notifications", {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          const unread = data.find(n => !n.is_read);
+          if (unread) setLatestUpdate(unread);
+        })
+        .catch(err => console.error("Notification fetch error:", err));
+    }
+  }, [user])
 
   function statusBadgeClass(status) {
     if (status === 'In Progress') return 'badge badge-progress'
@@ -27,6 +41,29 @@ function ResidentDashboard() {
 
   return (
     <div className="page">
+      {/* Added: Notification Alert Banner */}
+      {latestUpdate && (
+        <div className="card" style={{ 
+          backgroundColor: '#f0fdf4', 
+          border: '1px solid #10b981', 
+          marginBottom: '15px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          padding: '12px 16px' 
+        }}>
+          <p style={{ margin: 0, fontSize: '13px', color: '#0f4c3a' }}>
+            <strong>New Update:</strong> {latestUpdate.message}
+          </p>
+          <button 
+            onClick={() => navigate('/updates')} 
+            style={{ background: 'none', border: 'none', color: '#10b981', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}
+          >
+            VIEW ALL
+          </button>
+        </div>
+      )}
+
       <div className="page-header">
         <h1 className="page-title">Hazard Map</h1>
         {user?.role !== 'guest' && (
