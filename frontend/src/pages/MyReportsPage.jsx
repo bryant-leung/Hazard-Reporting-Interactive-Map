@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom" // 1. Import useNavigate
+import { useAuth } from '../context/AuthContext.jsx';
 
 function MyReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const token = localStorage.getItem("token")
+  const { highContrast } = useAuth();
   const navigate = useNavigate() // 2. Initialize navigate
 
   useEffect(() => {
@@ -52,13 +54,41 @@ function MyReportsPage() {
         <p>You haven't submitted any reports yet.</p>
       ) : (
         reports.map((report) => (
-          <div key={report.id} style={{ border: "1px solid #ccc", padding: "15px", marginBottom: "15px", borderRadius: "8px", backgroundColor: "#fff" }}>
-            <p><strong>ID:</strong> {report.id}</p>
-            <p><strong>Status:</strong> <span style={{ color: report.status === "Fixed" ? "green" : "orange", fontWeight: "bold" }}>{report.status}</span></p>
-            <p><strong>Category:</strong> {report.category}</p>
-            <p><strong>Description:</strong> {report.description}</p>
-            <p><strong>Submitted on:</strong> {new Date(report.created_at).toLocaleDateString()}</p>
-          </div>
+          <div
+            key={report.id}
+              style={{
+                border: highContrast ? "2px solid #fff" : "1px solid #ccc",
+                padding: "15px",
+                marginBottom: "15px",
+                borderRadius: "8px",
+                backgroundColor: highContrast ? "#000" : "#fff",
+                color: highContrast ? "#fff" : "#000",
+              }}
+            >
+              <p><strong>ID:</strong> {report.id}</p>
+
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  style={{
+                    color: highContrast
+                      ? (report.status === "Fixed" ? "#00FF00" : "#FFD700")
+                      : (report.status === "Fixed" ? "green" : "orange"),
+                    fontWeight: "bold",
+                  }}
+                >
+                  {report.status}
+                </span>
+              </p>
+
+              <p><strong>Category:</strong> {report.category}</p>
+              <p><strong>Description:</strong> {report.description}</p>
+
+              <p>
+                <strong>Submitted on:</strong>{" "}
+                {new Date(report.created_at).toLocaleDateString()}
+              </p>
+            </div>
         ))
       )}
     </div>
