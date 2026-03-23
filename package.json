@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@2toad/profanity": "^3.2.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "leaflet.heat": "^0.2.0"

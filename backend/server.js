@@ -8,6 +8,9 @@ import path from "path";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import verifyToken from './authentication/authMiddleware.js';
+import { Profanity } from '@2toad/profanity';
+
+const profanity = new Profanity();
 
 dotenv.config();
 
@@ -168,8 +171,6 @@ app.get("/chat-messages", async (req, res) => {
     try {
         let queryText = "SELECT c.message_id, c.created_at, c.message, u.email, c.vote FROM chat_message c,users u WHERE c.hazard_id = $1 AND c.user_id = u.id";
         let params = [reportId];
-        console.log("reportId:", reportId);
-        console.log("sort:", sort);
 
         if (sort === "newest") {
             queryText += " ORDER BY c.created_at DESC";
@@ -190,18 +191,16 @@ app.post("/send-messages", verifyToken, async (req, res) => {
     try {
         const result = await pool.query(
             "INSERT INTO chat_message (user_id, hazard_id, message) VALUES ($1, $2, $3) RETURNING *",
-            [user_id, hazard_id, message]
+            [user_id, hazard_id, profanity.censor(message)]
         );
         
         const hazardInfo = await pool.query("SELECT reporter_user_id FROM hazards WHERE id = $1", [hazard_id]);
         if (hazardInfo.rows.length > 0 && hazardInfo.rows[0].reporter_user_id !== user_id) {
             await pool.query(
                 "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
-                [hazardInfo.rows[0].reporter_user_id, `New comment on your report: "${message.substring(0, 20)}..."`, 'new_comment']
+                [hazardInfo.rows[0].reporter_user_id, `New comment on your report: "${profanity.censor(message.substring(0, 20))}..."`, 'new_comment']
             );
         }
-
-        console.log("New chat message logged:", result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(500).send("Error posting chat message: " + err.message);

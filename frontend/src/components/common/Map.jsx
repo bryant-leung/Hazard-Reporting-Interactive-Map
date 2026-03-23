@@ -469,7 +469,6 @@ const MapComponent = () => {
     if (!user) return <div className={highContrast ? 'high-contrast-popup' : ''}>Please log in to view the map.</div>;
     const sendMessage = async () => {
             if (!newMessage.trim() || !selectedReport) return;
-            console.log("Sending message:", newMessage);
             const token = localStorage.getItem("token");
             try {
                 const res = await fetch("http://localhost:3000/send-messages", {
