@@ -686,11 +686,11 @@ const MapComponent = () => {
                                             : selectedReport.value === 1
                                             ? "#000a97"
                                             : selectedReport.value === 2
-                                            ? "#017b68"
+                                            ? "#005145"
                                             : selectedReport.value === 3
-                                            ? "#777b03"
+                                            ? "#545702"
                                             : selectedReport.value === 4
-                                            ? "#6e5100"
+                                            ? "#543e01"
                                             : "#721c24"
                                     }}
                                 >

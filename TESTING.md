@@ -12,6 +12,7 @@ Testing plan:
                 no inputs
                 syntactically invalid email address
                 invalid text characters
+                duplicate email address
             }
 
             Login{ 
@@ -24,7 +25,6 @@ Testing plan:
                 valid inputs for only necessary categories
                 invalid inputs for each report category
                 no inputs
-                submit report multiple times
             }
 
             Report via map{ 
@@ -32,7 +32,6 @@ Testing plan:
                 valid inputs for only necessary categories
                 invalid inputs for each report category
                 no inputs
-                submit report multiple times
             }
 
             View heatmap{ 
@@ -50,7 +49,6 @@ Testing plan:
         Staff-only Features: 
 
             Update Hazard{
-                sort hazards by all the different categories
                 update each field of a hazard
             }
 

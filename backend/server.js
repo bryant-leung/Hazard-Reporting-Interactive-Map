@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import jwt from "jsonwebtoken";
 import verifyToken from './authentication/authMiddleware.js';
+import * as db from './db.js'
 
 dotenv.config();
 
@@ -60,10 +61,7 @@ app.post("/register", async (req, res) => {
     const { email, password, role } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10); // password scrambling encryption
-        await pool.query(
-            "INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3)",
-            [email, hashedPassword, role || "resident"]
-        );
+        await db.register_user(email, hashedPassword, role || "resident");
         res.status(201).send("User registered!");
     } catch (err) {
         res.status(500).send("Database Error: " + err.message);
@@ -75,7 +73,7 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
-        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        const result = await db.get_user(email);
         const user = result.rows[0];
 
         // text pw vs encrypted pw comparison
@@ -114,10 +112,7 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
-        const result = await pool.query(
-            "INSERT INTO hazards (reporter_user_id, category, severity, description, status, latitude, longitude, location_name, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
-            [reporter_user_id, hazard_category, severity, description, "Reported", latitude, longitude, finalLocation, imageUrl]
-        );
+        const result = await db.insert_hazard(reporter_user_id, hazard_category, severity, description, latitude, longitude, finalLocation, imageUrl);
         res.status(201).json({ message: "Hazard reported!", data: result.rows[0] });
     } catch (err) {
         console.error("Hazard Error:", err.message);
@@ -128,13 +123,7 @@ app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (re
 app.get("/heatmap-data", async (req, res) => {
     const { start_time, end_time } = req.query;
     try {
-        let queryText = "SELECT id, latitude, longitude, category, description, status, severity, location_name, image_url FROM hazards WHERE status != 'Fixed'";
-        let params = [];
-        if (start_time && end_time) {
-            queryText += " AND created_at BETWEEN $1 AND $2";
-            params = [start_time, end_time];
-        }
-        const result = await pool.query(queryText, params);
+        const result = await db.get_heatmap_data(start_time, end_time);
         res.json(result.rows.map(row => ({
             id: row.id,
             lat: parseFloat(row.latitude),
@@ -153,20 +142,10 @@ app.get("/heatmap-data", async (req, res) => {
 
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
+    console.log("reportId:", reportId);
+    console.log("sort:", sort);
     try {
-        let queryText = "SELECT c.message_id, c.created_at, c.message, u.email, c.vote FROM chat_message c,users u WHERE c.hazard_id = $1 AND c.user_id = u.id";
-        let params = [reportId];
-        console.log("reportId:", reportId);
-        console.log("sort:", sort);
-
-        if (sort === "newest") {
-            queryText += " ORDER BY c.created_at DESC";
-        } else if (sort === "oldest") {
-            queryText += " ORDER BY c.created_at ASC";
-        } else if (sort === "hot") {
-            queryText += " ORDER BY c.vote DESC";
-        }
-        const result = await pool.query(queryText, params);
+        const result = await db.get_chat_messages(reportId,sort);
         res.json(result.rows);
     } catch (err) {
         res.status(500).send("Error fetching chat messages: " + err.message);
@@ -176,10 +155,7 @@ app.get("/chat-messages", async (req, res) => {
 app.post("/send-messages", verifyToken, async (req, res) => {
     const { user_id, hazard_id, message } = req.body;
     try {
-        const result = await pool.query(
-            "INSERT INTO chat_message (user_id, hazard_id, message) VALUES ($1, $2, $3) RETURNING *",
-            [user_id, hazard_id, message]
-        );
+        const result = await db.send_messages(user_id, hazard_id, message);
         console.log("New chat message logged:", result.rows[0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -190,33 +166,17 @@ app.post("/send-messages", verifyToken, async (req, res) => {
 app.post("/update-vote", verifyToken, async (req, res) => {
     const { message_id, user_id } = req.body;
     try {
-        const voted = await pool.query(
-            "SELECT * FROM voted WHERE message_id = $1 AND user_id = $2",
-            [message_id, user_id]
-        );
+        const voted = await db.check_voted(message_id, user_id);
         let updatedMessage;
         let voteRecord;
         let action;
         if (voted.rows.length > 0) {
-            updatedMessage = await pool.query(
-                "UPDATE chat_message SET vote = vote - 1 WHERE message_id = $1 RETURNING *",
-                [message_id]
-            );
-            voteRecord = await pool.query(
-                "DELETE FROM voted WHERE message_id = $1 AND user_id = $2 RETURNING *",
-                [message_id, user_id]
-            );
-
+            updatedMessage = await db.decrement_vote(message_id);
+            voteRecord = await db.delete_vote(message_id, user_id);
             action = "removed";
         } else {
-            updatedMessage = await pool.query(
-                "UPDATE chat_message SET vote = vote + 1 WHERE message_id = $1 RETURNING *",
-                [message_id]
-            );
-            voteRecord = await pool.query(
-                "INSERT INTO voted (message_id, user_id) VALUES ($1, $2) RETURNING *",
-                [message_id, user_id]
-            );
+            updatedMessage = await db.increment_vote(message_id);
+            voteRecord = await db.insert_vote(message_id, user_id);
             action = "added";
         }
         res.status(200).json({
@@ -232,22 +192,7 @@ app.post("/update-vote", verifyToken, async (req, res) => {
 // Allow admins to view all reported hazards with reporter info
 app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT
-                h.id, 
-                h.category, 
-                h.description,
-                h.severity, 
-                h.status, 
-                h.latitude, 
-                h.longitude, 
-                h.location_name, 
-                h.image_url, -- THIS WAS MISSING
-                u.email as reporter_email
-            FROM hazards h
-            LEFT JOIN users u ON h.reporter_user_id = u.id
-            ORDER BY h.created_at DESC
-        `);
+        const result = await db.get_all_hazards();
         res.json(result.rows);
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
@@ -261,20 +206,13 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     const staff_id = req.user.id; 
 
     try {
-        const currentData = await pool.query("SELECT status FROM hazards WHERE id = $1", [id]);
+        const currentData = await db.get_hazard_by_id(id);
         if (currentData.rows.length === 0) return res.status(404).send("Hazard not found");
         const old_status = currentData.rows[0].status;
 
-        await pool.query(
-            "UPDATE hazards SET status = $1, description = $2, severity = $3 WHERE id = $4",
-            [status, description, severity, id]
-        );
+        await db.update_hazard(status, description, severity, id);
 
-        await pool.query(
-            "INSERT INTO status_updates (hazard_id, staff_user_id, old_status, new_status, note) VALUES ($1, $2, $3, $4, $5)",
-            [id, staff_id, old_status, status, note || "Status updated via dashboard"]
-        );
-
+        await db.log_status_update(id, staff_id, old_status, status, note || "Status updated via dashboard")
         res.json({ message: "Update successful and logged" });
     } catch (err) {
         res.status(500).send(err.message);
@@ -284,7 +222,7 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
 app.delete("/admin/delete-hazard/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query("DELETE FROM hazards WHERE id = $1", [id]);
+        await db.delete_hazard(id);
         res.json({ message: "Deleted successfully" });
     } catch (err) {
         res.status(500).send(err.message);
@@ -293,10 +231,7 @@ app.delete("/admin/delete-hazard/:id", verifyToken, async (req, res) => {
 
 app.get('/api/my-reports', verifyToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM hazards WHERE reporter_user_id = $1 ORDER BY created_at DESC", 
-      [req.user.id]
-    );
+    const result = await db.get_my_reports(req.user.id);
     res.json(result.rows);
   } catch (err) {
     console.error("My Reports Error:", err.message);
@@ -304,6 +239,10 @@ app.get('/api/my-reports', verifyToken, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-});
+    });
+}
