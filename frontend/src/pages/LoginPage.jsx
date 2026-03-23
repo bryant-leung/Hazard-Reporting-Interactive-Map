@@ -41,7 +41,7 @@ function LoginPage() {
     <div className="auth-container">
       <div className="auth-card">
         <h1>Welcome back</h1>
-        <p className="auth-subtitle">Sign in to Birmingham Safety Watch</p>
+        <p className="auth-subtitle">Sign in to CivicTrace</p>
 
         {error && <div className="error-msg">{error}</div>}
 

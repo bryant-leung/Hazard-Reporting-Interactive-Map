@@ -40,7 +40,7 @@ function Navbar() {
       boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
     }}>
       <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '0.05em', color: '#10b981' }}>
-        W S W N T G ?
+        CivicTrace
       </span>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
