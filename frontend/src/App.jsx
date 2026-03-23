@@ -38,7 +38,7 @@ function AppRoutes() {
         user ? <Map /> : <Navigate to="/" />
       } />
       <Route path="/my-reports" element={
-        user && user.role === 'resident' ? <MyReports /> : <Navigate to="/" />
+        user && (user.role === 'resident' || user.role === 'staff') ? <MyReports /> : <Navigate to="/" />
       } />
     </Routes>
   )

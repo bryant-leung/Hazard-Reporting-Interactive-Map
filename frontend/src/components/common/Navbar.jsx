@@ -44,7 +44,7 @@ function Navbar() {
       </span>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        {user && user.role === 'resident' && (
+        {user && (user.role === 'resident' || user.role === 'staff') && (
           <Link to="/my-reports" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '14px' }}>
             My Reports
           </Link>
