@@ -9,6 +9,9 @@ import fs from "fs";
 import jwt from "jsonwebtoken";
 import verifyToken from './authentication/authMiddleware.js';
 import * as db from './db.js'
+import { Profanity } from '@2toad/profanity';
+
+const profanity = new Profanity();
 
 dotenv.config();
 
@@ -140,6 +143,15 @@ app.get("/heatmap-data", async (req, res) => {
     }
 });
 
+app.get("/notifications", verifyToken, async (req, res) => {
+    try {
+        const result = await db.get_notifications(req.user.id);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).send("Error fetching notifications: " + err.message);
+    }
+});
+
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
     console.log("reportId:", reportId);
@@ -156,7 +168,15 @@ app.post("/send-messages", verifyToken, async (req, res) => {
     const { user_id, hazard_id, message } = req.body;
     try {
         const result = await db.send_messages(user_id, hazard_id, message);
-        console.log("New chat message logged:", result.rows[0]);
+        console.log("New chat message logged:", result.rows[0]);     
+        const hazardInfo = await pool.query("SELECT reporter_user_id FROM hazards WHERE id = $1", [hazard_id]);
+        if (hazardInfo.rows.length > 0 && hazardInfo.rows[0].reporter_user_id !== user_id) {
+            await db.insert_notification(
+                hazardInfo.rows[0].reporter_user_id,
+                `New comment on your report: "${profanity.censor(message.substring(0, 20))}..."`,
+                'new_comment'
+            );
+        }
         res.status(201).json(result.rows[0]);
     } catch (err) {
         res.status(500).send("Error posting chat message: " + err.message);
@@ -178,12 +198,17 @@ app.post("/update-vote", verifyToken, async (req, res) => {
             updatedMessage = await db.increment_vote(message_id);
             voteRecord = await db.insert_vote(message_id, user_id);
             action = "added";
+
+            const authorInfo = await db.get_message_author(message_id);
+            if (authorInfo.rows.length > 0 && authorInfo.rows[0].user_id !== user_id) {
+                await db.insert_notification(authorInfo.rows[0].user_id, `Someone liked your comment: "${authorInfo.rows[0].message.substring(0, 20)}..."`,'comment_like');
         }
         res.status(200).json({
             action,
             updatedMessage: updatedMessage.rows[0],
             voteRecord: voteRecord.rows[0]
         });
+    }
     } catch (err) {
         res.status(500).send("Error updating vote: " + err.message);
     }
@@ -209,10 +234,19 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
         const currentData = await db.get_hazard_by_id(id);
         if (currentData.rows.length === 0) return res.status(404).send("Hazard not found");
         const old_status = currentData.rows[0].status;
+        const reporter_id = currentData.rows[0].reporter_user_id;
+        const hazard_desc = currentData.rows[0].description;
 
         await db.update_hazard(status, description, severity, id);
 
         await db.log_status_update(id, staff_id, old_status, status, note || "Status updated via dashboard")
+        if (old_status !== status) {
+            await pool.query(
+                "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
+                [reporter_id, `Update: Your report "${hazard_desc.substring(0, 20)}..." is now ${status}.`, 'status_change']
+            );
+        }
+
         res.json({ message: "Update successful and logged" });
     } catch (err) {
         res.status(500).send(err.message);

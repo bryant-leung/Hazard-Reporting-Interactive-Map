@@ -71,6 +71,34 @@ Testing plan:
                 Test that heatmap gneeration is based on previous data
             }
 
+            Guest Restrictions{
+                
+                Input: 
+                
+                User will first click "Continue as Guest" on the login page and is sent to the map page and then user then clicks on the map to attempt to report a hazard.
+
+                Goal: 
+                
+                The guest user should be able to view the map and hazards but should not be able to submit a hazard report and a message should be displayed indicating that reporting is disabled in guest mode.
+
+                Actual Response To User Input: 
+                
+                Guest user was able to successfully be sent to the map page and could view hazards. When attempting to report a hazard via the map there was a popup message displayed stating that hazard reporting is disabled in guest mode and most importantly no report submission was allowed.
+
+                Result: Pass 
+
+                Evidence: 
+
+                I have attatched two screenshots proving the goal was achieved.
+
+                Screenshot 1 - Guest login page:
+![Guest Login](testing_evidence/guest_login.png)
+
+                Screenshot 2 - Guest map restriction message:
+![Guest Map Restriction](testing_evidence/guest_map.png)
+
+            }
+
 
         Staff-only Features: 
 
