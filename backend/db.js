@@ -112,7 +112,10 @@ export const get_all_hazards = () => {
 }
 
 export const get_hazard_by_id = (id) => {
-    return pool.query("SELECT status FROM hazards WHERE id = $1", [id]);
+    return pool.query(
+        "SELECT status, reporter_user_id, description FROM hazards WHERE id = $1",
+        [id]
+    );
 }
 
 export const update_hazard = (status, description, severity, id) => {
@@ -139,6 +142,36 @@ export const get_my_reports = (user_id) => {
         [user_id]
     );
 }
+
+export const get_notifications = (user_id) => {
+    return pool.query(
+        "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
+        [user_id]
+    );
+}
+
+export const insert_notification = (user_id, message, type) => {
+    return pool.query(
+        "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
+        [user_id, message, type]
+    );
+}
+
+export const get_hazard_reporter = (hazard_id) => {
+    return pool.query(
+        "SELECT reporter_user_id FROM hazards WHERE id = $1",
+        [hazard_id]
+    );
+}
+
+export const get_message_author = (message_id) => {
+    return pool.query(
+        "SELECT user_id, message FROM chat_message WHERE message_id = $1",
+        [message_id]
+    );
+}
+
+
 
 
 
