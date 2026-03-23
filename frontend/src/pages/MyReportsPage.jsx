@@ -6,7 +6,7 @@ function MyReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const token = localStorage.getItem("token")
-  const { highContrast } = useAuth();
+  const { user, highContrast } = useAuth();
   const navigate = useNavigate() // 2. Initialize navigate
 
   useEffect(() => {
@@ -32,7 +32,11 @@ function MyReportsPage() {
     <div style={{ padding: "20px" }}>
       {/* 3. Add the Back Button at the top */}
       <button 
-        onClick={() => navigate('/resident')} 
+        onClick={() => {
+          if (user.role === 'staff') {
+            navigate('/staff')
+          } else {
+          navigate('/resident')}}}
         style={{
           marginBottom: '20px',
           padding: '8px 16px',
