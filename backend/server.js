@@ -186,7 +186,7 @@ app.post("/update-vote", verifyToken, async (req, res) => {
 
             const authorInfo = await db.get_message_author(message_id);
             if (authorInfo.rows.length > 0 && authorInfo.rows[0].user_id !== user_id) {
-                const messageData = await pool.query("SELECT hazard_id FROM chat_message WHERE message_id = $1", [message_id]);
+                const messageData = await db.get_hazard_from_message(message_id);
                 const hazard_id = messageData.rows[0].hazard_id;
 
                 await db.insert_notification(

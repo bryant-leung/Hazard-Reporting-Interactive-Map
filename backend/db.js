@@ -183,7 +183,9 @@ export const get_message_author = (message_id) => {
     );
 }
 
-
+export const get_hazard_from_message = (message_id) => {
+    return pool.query("SELECT hazard_id FROM chat_message WHERE message_id = $1", [message_id]);
+}
 
 
 
