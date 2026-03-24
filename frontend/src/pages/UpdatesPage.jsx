@@ -113,17 +113,11 @@ const UpdatesPage = () => {
                                 <p style={{ margin: 0, fontSize: '1rem', color: '#2c3e50', fontWeight: '500' }}>
                                     {note.message}
                                 </p>
-                                <div style={{ display: 'flex', gap: '15px', marginTop: '8px' }}>
-                                    {note.location_name && (
-                                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-                                            📍 {note.location_name}
-                                        </p>
-                                    )}
-                                    {/* Added: Display who the report belongs to */}
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
-                                        👤 By: {formatReporterName(note.reporter_email || note.email)}
+                                {note.location_name && (
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.85rem', color: '#666' }}>
+                                        📍 {note.location_name}
                                     </p>
-                                </div>
+                                )}
                             </div>
 
                             {note.hazard_id && (
