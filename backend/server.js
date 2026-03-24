@@ -119,7 +119,8 @@ app.get("/heatmap-data", async (req, res) => {
             status: row.status,
             value: row.severity,
             location: row.location_name,
-            imageUrl: row.image_url
+            imageUrl: row.image_url,
+            reporter_email: row.reporter_email 
         })));
     } catch (err) {
         res.status(500).send("Collation Error: " + err.message);
@@ -223,23 +224,31 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     try {
         const currentData = await db.get_hazard_by_id(id);
         if (currentData.rows.length === 0) return res.status(404).send("Hazard not found");
-        const old_status = currentData.rows[0].status;
-        const reporter_id = currentData.rows[0].reporter_user_id;
-        const hazard_desc = currentData.rows[0].description;
+        
+        const oldData = currentData.rows[0];
+        const reporter_id = oldData.reporter_user_id;
 
         await db.update_hazard(status, description, severity, id);
-        await db.log_status_update(id, staff_id, old_status, status, note || "Status updated via dashboard")
         
-        if (old_status !== status) {
+        await db.log_status_update(id, staff_id, oldData.status, status, note || "Details updated via admin dashboard");
+
+        let changes = [];
+        if (oldData.status !== status) changes.push(`status to ${status}`);
+        if (oldData.description !== description) changes.push(`description`);
+        if (oldData.severity !== parseInt(severity)) changes.push(`severity level`);
+
+        if (changes.length > 0) {
+            const message = `Update: Your report (ID: ${id}) had its ${changes.join(', ')} updated.`;
+            
             await db.insert_notification(
                 reporter_id, 
-                `Update: Your report "${hazard_desc.substring(0, 20)}..." is now ${status}.`, 
+                message, 
                 'status_change',
                 id
             );
         }
 
-        res.json({ message: "Update successful and logged" });
+        res.json({ message: "Update successful and notification sent" });
     } catch (err) {
         res.status(500).send(err.message);
     }

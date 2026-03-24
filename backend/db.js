@@ -29,10 +29,18 @@ export const insert_hazard = (reporter_user_id, category, severity, description,
 }
 
 export const get_heatmap_data = (start_time, end_time) => {
-    let queryText = "SELECT id, latitude, longitude, category, description, status, severity, location_name, image_url FROM hazards WHERE status != 'Fixed'";
+    let queryText = `
+        SELECT 
+            h.id, h.latitude, h.longitude, h.category, h.description, 
+            h.status, h.severity, h.location_name, h.image_url, 
+            u.email as reporter_email 
+        FROM hazards h
+        LEFT JOIN users u ON h.reporter_user_id = u.id
+        WHERE h.status != 'Fixed'`;
+    
     let params = [];
     if (start_time && end_time) {
-        queryText += " AND created_at BETWEEN $1 AND $2";
+        queryText += " AND h.created_at BETWEEN $1 AND $2";
         params = [start_time, end_time];
     }
     return pool.query(queryText, params);

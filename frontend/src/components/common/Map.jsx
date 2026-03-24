@@ -88,7 +88,6 @@ const MapComponent = ({ selectedId }) => {
         })
     }
 
-    // Effect to handle teleporting when selectedId changes
     useEffect(() => {
         if (selectedId && hazards_data_ref.current.length > 0 && map_ref.current) {
             const targetReport = hazards_data_ref.current.find(h => h.id === selectedId);
@@ -221,7 +220,6 @@ const MapComponent = ({ selectedId }) => {
                 });
                 points_ref.current = data.map(p => [p.lat, p.lng, p.value]);
 
-                // Check for auto-open after data load
                 if (selectedId) {
                     const targetReport = data.find(h => h.id === selectedId);
                     if (targetReport) {
@@ -631,6 +629,10 @@ const MapComponent = ({ selectedId }) => {
                                 {selectedReport.cat} hazard
                             </h3>
 
+                            <p style={{ color: highContrast ? "#fff" : "#000", fontSize: "0.9rem", marginBottom: "15px" }}>
+                                <b>Reported by:</b> {selectedReport.reporter_email ? selectedReport.reporter_email.split('@')[0] : "Anonymous"}
+                            </p>
+
                             <p style={{ color: highContrast ? "#fff" : "#000" }}>
                                 <b>Location:</b> <em>{selectedReport.location}</em>
                             </p>
@@ -844,7 +846,7 @@ const MapComponent = ({ selectedId }) => {
                                     cursor: "pointer"
                                 }}
                             >
-                                ✕
+                                ✕ Close
                             </button>
                         </>
                     )}
