@@ -78,13 +78,13 @@ describe('POST /login', () => { //cant do success because it doesnt return a sta
 
     test('unregistered email', async () => {
         db.get_user.mockResolvedValue({ rows: [] });
-        const res = await request(app).post('/login').send({ email: 'nobody@test.com', password: 'Password123' });
+        const res = await request(app).post('/login').send({ email: 'unregistered@test.com', password: 'passord' });
         expect(res.status).toBe(401);
     });
 
     test('wrong password', async () => {
         db.get_user.mockResolvedValue({
-            rows: [{ id: 1, email: 'test@test.com', password_hash: 'invalidhash', role: 'resident' }]
+            rows: [{ id: 1, email: 'test@test.com', password_hash: 'wrong', role: 'resident' }]
         });
         const res = await request(app).post('/login').send({ email: 'test@test.com', password: 'wrongpassword' });
         expect(res.status).toBe(401);
@@ -104,7 +104,7 @@ describe('POST /report-hazard', () => { //invalid inputs handled on frontend
             .field('reporter_user_id', '1')
             .field('hazard_category', 'Safety Hazard')
             .field('severity', '3')
-            .field('description', 'Broken pavement')
+            .field('description', 'test')
             .field('latitude', '52.4506')
             .field('longitude', '-1.9306');
 
@@ -123,7 +123,7 @@ describe('GET /heatmap-data', () => {
 
     test('no time range', async () => {
         db.get_heatmap_data.mockResolvedValue({
-            rows: [{ id: 1, latitude: '52.4506', longitude: '-1.9306', category: 'Safety Hazard', description: 'Test', status: 'Reported', severity: 3, location_name: 'Test', image_url: null }]
+            rows: [{ id: 1, latitude: '52.4506', longitude: '-1.9306', category: 'Safety Hazard', description: 'test', status: 'Reported', severity: 3, location_name: 'test', image_url: null }]
         });
         const res = await request(app).get('/heatmap-data');
         expect(res.status).toBe(200);
