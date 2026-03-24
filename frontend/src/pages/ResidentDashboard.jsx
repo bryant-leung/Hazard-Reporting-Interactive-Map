@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom" 
 import Map from "../components/common/Map"
 import { useAuth } from "../context/AuthContext"
 
 function ResidentDashboard() {
   const navigate = useNavigate()
+  const location = useLocation() 
   const { user } = useAuth()
   const [hazards, setHazards] = useState([])
   const [loading, setLoading] = useState(true)
   const [latestUpdate, setLatestUpdate] = useState(null) 
+  const [highlightedId, setHighlightedId] = useState(null) 
+  const [autoOpenId, setAutoOpenId] = useState(null) 
 
   useEffect(() => {
     fetch("http://localhost:3000/heatmap-data")
@@ -32,6 +35,19 @@ function ResidentDashboard() {
         .catch(err => console.error("Notification fetch error:", err));
     }
   }, [user])
+
+  useEffect(() => {
+    if (!loading && (location.state?.targetHazardId || location.state?.openHazardId)) {
+      const targetId = location.state.targetHazardId || location.state.openHazardId;
+      setHighlightedId(targetId);
+      
+      if (location.state?.openHazardId) {
+        setAutoOpenId(location.state.openHazardId);
+      }
+
+      setTimeout(() => setHighlightedId(null), 5000);
+    }
+  }, [loading, location.state]);
 
   function statusBadgeClass(status) {
     if (status === 'In Progress') return 'badge badge-progress'
@@ -74,7 +90,8 @@ function ResidentDashboard() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <Map />
+        {/* Pass the autoOpenId into your Map component so it triggers the detail panel */}
+        <Map selectedId={autoOpenId} />
       </div>
 
       <h2 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--primary)', marginBottom: '12px' }}>
@@ -91,7 +108,17 @@ function ResidentDashboard() {
         </div>
       ) : (
         hazards.map((hazard, i) => (
-          <div className="report-card" key={hazard.id || i}>
+          <div 
+            className="report-card" 
+            key={hazard.id || i}
+            id={`hazard-${hazard.id}`} // Necessary for auto-scrolling
+            style={{ 
+              transition: 'all 0.4s ease-in-out',
+              border: highlightedId === hazard.id ? '2px solid #10b981' : undefined,
+              backgroundColor: highlightedId === hazard.id ? '#f0fdf4' : undefined,
+              boxShadow: highlightedId === hazard.id ? '0 0 15px rgba(16, 185, 129, 0.2)' : undefined
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
               <strong style={{ fontSize: '15px' }}>{hazard.category || hazard.cat || 'Hazard'}</strong>
               <span className={statusBadgeClass(hazard.status)}>{hazard.status || 'Reported'}</span>

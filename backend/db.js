@@ -145,17 +145,21 @@ export const get_my_reports = (user_id) => {
 
 export const get_notifications = (user_id) => {
     return pool.query(
-        "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
+        `SELECT n.*, h.location_name, h.category as hazard_cat
+         FROM notifications n 
+         LEFT JOIN hazards h ON n.hazard_id = h.id 
+         WHERE n.user_id = $1 
+         ORDER BY n.created_at DESC`,
         [user_id]
     );
 }
 
-export const insert_notification = (user_id, message, type) => {
-    return pool.query(
-        "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
-        [user_id, message, type]
+export const insert_notification = async (user_id, message, type, hazard_id = null) => {
+    return await pool.query(
+        "INSERT INTO notifications (user_id, message, type, hazard_id) VALUES ($1, $2, $3, $4) RETURNING *",
+        [user_id, message, type, hazard_id]
     );
-}
+};
 
 export const get_hazard_reporter = (hazard_id) => {
     return pool.query(

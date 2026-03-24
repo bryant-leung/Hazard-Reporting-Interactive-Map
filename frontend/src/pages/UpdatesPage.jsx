@@ -48,7 +48,6 @@ const UpdatesPage = () => {
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
             
-            {/* BACK BUTTON: This fixes the navigation issue */}
             <div style={{ marginBottom: '20px' }}>
                 <button 
                     onClick={() => navigate('/resident')} 
@@ -84,23 +83,60 @@ const UpdatesPage = () => {
                         <div key={note.id} style={{
                             padding: '20px',
                             borderRadius: '10px',
-                            backgroundColor: note.is_read ? '#ffffff' : '#f0f7ff',
+                            backgroundColor: note.is_read ? '#ffffff' : '#f0fdf4',
                             border: `1px solid ${note.is_read ? '#e0e0e0' : '#cce3ff'}`,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px'
                         }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                                 <span style={{ 
                                     fontSize: '0.7rem', 
                                     fontWeight: '800', 
                                     color: note.type === 'status_change' ? '#28a745' : '#007bff'
                                 }}>
                                     {formatType(note.type)}
+                                    {note.hazard_id && ` | REPORT #${note.hazard_id}`}
                                 </span>
                                 <span style={{ fontSize: '0.8rem', color: '#999' }}>
                                     {formatTime(note.created_at)}
                                 </span>
                             </div>
-                            <p style={{ margin: 0, fontSize: '1rem', color: '#2c3e50' }}>{note.message}</p>
+
+                            <div style={{ flex: 1 }}>
+                                <p style={{ margin: 0, fontSize: '1rem', color: '#2c3e50', fontWeight: '500' }}>
+                                    {note.message}
+                                </p>
+                                {note.location_name && (
+                                    <p style={{ margin: '8px 0 0', fontSize: '0.85rem', color: '#666' }}>
+                                        📍 {note.location_name}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* TELEPORT BUTTON: Uses the hazard_id to jump to the issue and open the panel */}
+                            {note.hazard_id && (
+                                <button 
+                                    onClick={() => navigate('/resident', { state: { openHazardId: note.hazard_id } })}
+                                    style={{
+                                        alignSelf: 'flex-start',
+                                        background: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 14px',
+                                        borderRadius: '4px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s'
+                                    }}
+                                    onMouseOver={(e) => e.target.style.background = '#059669'}
+                                    onMouseOut={(e) => e.target.style.background = '#10b981'}
+                                >
+                                    GO TO ISSUE →
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

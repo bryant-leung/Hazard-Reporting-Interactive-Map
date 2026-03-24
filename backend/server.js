@@ -154,8 +154,6 @@ app.get("/notifications", verifyToken, async (req, res) => {
 
 app.get("/chat-messages", async (req, res) => {
     const { reportId, sort } = req.query;
-    console.log("reportId:", reportId);
-    console.log("sort:", sort);
     try {
         const result = await db.get_chat_messages(reportId,sort);
         res.json(result.rows);
@@ -165,21 +163,24 @@ app.get("/chat-messages", async (req, res) => {
 });
 
 app.post("/send-messages", verifyToken, async (req, res) => {
-    const { user_id, hazard_id, message } = req.body;
+    const { user_id, hazard_id, message } = req.body; 
+
     try {
         const result = await db.send_messages(user_id, hazard_id, message);
-        console.log("New chat message logged:", result.rows[0]);     
-        const hazardInfo = await pool.query("SELECT reporter_user_id FROM hazards WHERE id = $1", [hazard_id]);
+        
+        const hazardInfo = await db.get_hazard_reporter(hazard_id);
+        
         if (hazardInfo.rows.length > 0 && hazardInfo.rows[0].reporter_user_id !== user_id) {
             await db.insert_notification(
                 hazardInfo.rows[0].reporter_user_id,
                 `New comment on your report: "${profanity.censor(message.substring(0, 20))}..."`,
-                'new_comment'
+                'new_comment',
+                hazard_id 
             );
         }
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        res.status(500).send("Error posting chat message: " + err.message);
+        res.status(500).send("Error: " + err.message);
     }
 });
 
@@ -190,6 +191,7 @@ app.post("/update-vote", verifyToken, async (req, res) => {
         let updatedMessage;
         let voteRecord;
         let action;
+
         if (voted.rows.length > 0) {
             updatedMessage = await db.decrement_vote(message_id);
             voteRecord = await db.delete_vote(message_id, user_id);
@@ -201,14 +203,22 @@ app.post("/update-vote", verifyToken, async (req, res) => {
 
             const authorInfo = await db.get_message_author(message_id);
             if (authorInfo.rows.length > 0 && authorInfo.rows[0].user_id !== user_id) {
-                await db.insert_notification(authorInfo.rows[0].user_id, `Someone liked your comment: "${authorInfo.rows[0].message.substring(0, 20)}..."`,'comment_like');
+                const messageData = await pool.query("SELECT hazard_id FROM chat_message WHERE message_id = $1", [message_id]);
+                const hazard_id = messageData.rows[0].hazard_id;
+
+                await db.insert_notification(
+                    authorInfo.rows[0].user_id, 
+                    `Someone liked your comment: "${profanity.censor(authorInfo.rows[0].message.substring(0, 20))}..."`,
+                    'comment_like',
+                    hazard_id
+                );
+            }
         }
         res.status(200).json({
             action,
             updatedMessage: updatedMessage.rows[0],
             voteRecord: voteRecord.rows[0]
         });
-    }
     } catch (err) {
         res.status(500).send("Error updating vote: " + err.message);
     }
@@ -238,12 +248,14 @@ app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
         const hazard_desc = currentData.rows[0].description;
 
         await db.update_hazard(status, description, severity, id);
-
         await db.log_status_update(id, staff_id, old_status, status, note || "Status updated via dashboard")
+        
         if (old_status !== status) {
-            await pool.query(
-                "INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)",
-                [reporter_id, `Update: Your report "${hazard_desc.substring(0, 20)}..." is now ${status}.`, 'status_change']
+            await db.insert_notification(
+                reporter_id, 
+                `Update: Your report "${hazard_desc.substring(0, 20)}..." is now ${status}.`, 
+                'status_change',
+                id
             );
         }
 
