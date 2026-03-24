@@ -232,7 +232,3 @@ describe('DELETE /admin/delete-hazard/:id', () => {
     });
 
 });
-
-afterAll(async () => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-});
