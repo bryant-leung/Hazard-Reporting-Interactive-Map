@@ -705,11 +705,11 @@ const MapComponent = ({ selectedId }) => {
                                             : selectedReport.value === 1
                                             ? "#000a97"
                                             : selectedReport.value === 2
-                                            ? "#005145"
+                                            ? "#017b68"
                                             : selectedReport.value === 3
-                                            ? "#545702"
+                                            ? "#777b03"
                                             : selectedReport.value === 4
-                                            ? "#543e01"
+                                            ? "#6e5100"
                                             : "#721c24"
                                     }}
                                 >

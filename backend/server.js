@@ -17,7 +17,6 @@ dotenv.config();
 
 const PORT = process.env.NODE_PORT || 3000;
 
-
 const app = express();
 app.use(express.json());
 
@@ -26,7 +25,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// For image uploading
 const storage = multer.diskStorage({
     destination: 'uploads/',
     filename: (req, file, cb) => {
@@ -41,7 +39,6 @@ if (!fs.existsSync('uploads')) {
 
 app.use('/uploads', express.static('uploads'));
 
-// Connect to Supabase postgresql database using connection string
 const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -49,7 +46,6 @@ const pool = new pg.Pool({
     }
 });
 
-// checks to verify backend is connected to supabase cloud
 pool.query("SELECT NOW()", (err, res) => {
     if (err) {
         console.error("Supabase Connection Error:", err.message);
@@ -58,12 +54,10 @@ pool.query("SELECT NOW()", (err, res) => {
     }
 });
 
-// allow residents and admins to create accounts
-// Added password hashing as well
 app.post("/register", async (req, res) => {
     const { email, password, role } = req.body;
     try {
-        const hashedPassword = await bcrypt.hash(password, 10); // password scrambling encryption
+        const hashedPassword = await bcrypt.hash(password, 10);
         await db.register_user(email, hashedPassword, role || "resident");
         res.status(201).send("User registered!");
     } catch (err) {
@@ -71,25 +65,19 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// Login function that checks email and password against the database and returns user data (including role) if successful
-// In a nutshell authenticates users and provides role for RBAC.
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await db.get_user(email);
         const user = result.rows[0];
 
-        // text pw vs encrypted pw comparison
         if (user && await bcrypt.compare(password, user.password_hash)) {
-            
-            // jwt token generation
             const token = jwt.sign(
                 { id: user.id, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: '2h' }
             );
 
-            // Return user alongside token
             res.json({
                 token: token,
                 id: user.id,
@@ -104,13 +92,8 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Link complaint to a specific user using foreign keys
-// Allows users to report hazards
-// Combined logic: This now supports both the Manual Form and the Python-style Map Pins
 app.post("/report-hazard", verifyToken, upload.single('hazard_image'), async (req, res) => {
     const { reporter_user_id, hazard_category, severity, description, latitude, longitude, location_name } = req.body;
-    
-    // Safety check: if location_name is missing (common with map pins), give it a default
     const finalLocation = location_name || "Map Pin Location";
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
@@ -167,7 +150,6 @@ app.post("/send-messages", verifyToken, async (req, res) => {
 
     try {
         const result = await db.send_messages(user_id, hazard_id, message);
-        
         const hazardInfo = await db.get_hazard_reporter(hazard_id);
         
         if (hazardInfo.rows.length > 0 && hazardInfo.rows[0].reporter_user_id !== user_id) {
@@ -189,12 +171,12 @@ app.post("/update-vote", verifyToken, async (req, res) => {
     try {
         const voted = await db.check_voted(message_id, user_id);
         let updatedMessage;
-        let voteRecord;
+        let voteRecord = null;
         let action;
 
         if (voted.rows.length > 0) {
             updatedMessage = await db.decrement_vote(message_id);
-            voteRecord = await db.delete_vote(message_id, user_id);
+            await db.delete_vote(message_id, user_id);
             action = "removed";
         } else {
             updatedMessage = await db.increment_vote(message_id);
@@ -217,14 +199,13 @@ app.post("/update-vote", verifyToken, async (req, res) => {
         res.status(200).json({
             action,
             updatedMessage: updatedMessage.rows[0],
-            voteRecord: voteRecord.rows[0]
+            voteRecord: voteRecord ? voteRecord.rows[0] : null
         });
     } catch (err) {
         res.status(500).send("Error updating vote: " + err.message);
     }
 });
 
-// Allow admins to view all reported hazards with reporter info
 app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     try {
         const result = await db.get_all_hazards();
@@ -234,7 +215,6 @@ app.get("/admin/view-hazards", verifyToken, async (req, res) => {
     }
 });
 
-// Update hazard status and log the change in status_updates for audit trail
 app.put("/admin/update-hazard/:id", verifyToken, async (req, res) => {
     const { id } = req.params;
     const { status, description, note, severity } = req.body;
