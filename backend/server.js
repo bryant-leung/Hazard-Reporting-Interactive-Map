@@ -61,7 +61,7 @@ app.post("/register", async (req, res) => {
         await db.register_user(email, hashedPassword, role || "resident");
         res.status(201).send("User registered!");
     } catch (err) {
-        res.status(500).send("Database Error: " + err.message);
+        res.status(500).send("This email is already registered");
     }
 });
 

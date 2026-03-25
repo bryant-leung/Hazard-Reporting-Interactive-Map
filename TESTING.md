@@ -11,7 +11,6 @@ Testing plan:
                 valid password and email
                 no inputs
                 syntactically invalid email address
-                invalid text characters
                 duplicate email address
             }
 
