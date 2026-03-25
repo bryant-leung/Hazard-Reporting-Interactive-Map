@@ -96,7 +96,7 @@ cd frontend
 # Run the test
 npm test
 ```
-## 🔐 Test Accounts
+## Test Accounts
 Use the following credentials to access the different user interfaces:
 
 | User Role | Email | Password |
