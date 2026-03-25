@@ -232,3 +232,14 @@ describe('DELETE /admin/delete-hazard/:id', () => {
     });
 
 });
+
+describe('GET /api/my-reports' , () => {
+    const token = makeToken('resident');
+
+    test('successful pull', async () => {
+        db.get_my_reports.mockResolvedValue({rows:[{ id: 1, category: 'Safety Hazard' }]});
+        const res = (await request(app).get('/api/my-reports')).set('Authorization' , `Bearer ${token}`);
+        expect(res.status).toBe(200);
+    });
+
+});
