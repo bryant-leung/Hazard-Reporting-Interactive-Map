@@ -8,15 +8,21 @@ Testing plan:
         Universal Features: 
 
             Register{ 
-                valid password and email
-                no inputs
-                syntactically invalid email address
-                duplicate email address
+                Valid password and email
+![Valid password and email](testing_evidence/register_valid.png)
+                No inputs
+                ![No inputs](testing_evidence/register_no_inputs.png)
+                Syntactically invalid email address
+                ![Invalid email address](testing_evidence/register_invalid.png)
+                Duplicate email address
+![Duplicate email address](testing_evidence/register_duplicate_email.png)
             }
 
             Login{ 
                 no inputs
+![No inputs](testing_evidence/login_empty.png)
                 syntactically invalid email address
+                ![Syntactically invalid email addresse](testing_evidence/login_syntactically_invalid.png)
             }
 
             Report via report page{
@@ -39,9 +45,15 @@ Testing plan:
 
             Send message{
                 send a valid message
+![Send a valid message](testing_evidence/message_valid.png)
                 send a message with inappropriate language
+                ![Send a message with inappropriate language](testing_evidence/message_profanity.png)
                 upvote a message
+                ![upvote a message](testing_evidence/message_voted.png)
+                remove upvote from a message
+                ![remove upvote from a message](testing_evidence/message_remove_vote.png)
                 view messages by amount of likes
+                ![view messages by amount of likes](testing_evidence/message_view_most_voted.png)
             }
 
 
