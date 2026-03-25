@@ -238,7 +238,7 @@ describe('GET /api/my-reports' , () => {
 
     test('successful pull', async () => {
         db.get_my_reports.mockResolvedValue({rows:[{ id: 1, category: 'Safety Hazard' }]});
-        const res = (await request(app).get('/api/my-reports')).set('Authorization' , `Bearer ${token}`);
+        const res = await request(app).get('/api/my-reports').set('Authorization' , `Bearer ${token}`);
         expect(res.status).toBe(200);
     });
 
