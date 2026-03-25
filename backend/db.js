@@ -1,6 +1,8 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import { Profanity } from '@2toad/profanity';
 
+const profanity = new Profanity();
 dotenv.config();
 
 const pool = new pg.Pool({
@@ -61,7 +63,7 @@ export const get_chat_messages = (reportId, sort) => {
 export const send_messages = (user_id, hazard_id, message) => {
     return pool.query(
         "INSERT INTO chat_message (user_id, hazard_id, message) VALUES ($1, $2, $3) RETURNING *",
-        [user_id, hazard_id, message]
+        [user_id, hazard_id, profanity.censor(message)]
     );
 }
 
