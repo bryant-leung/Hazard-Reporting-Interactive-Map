@@ -15,7 +15,7 @@ To run this project locally, ensure you have the following installed:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Database Setup
 CivicTrace uses **Supabase** for cloud storage.
@@ -60,3 +60,39 @@ npm run dev
 Once both are running, access the app at: http://localhost:5173
 
 Ensure your .env file is created in the /backend directory before starting the server.
+
+### Unit & Integration Testing
+
+**Backend Installation**
+```bash
+# Navigate to the backend
+cd backend
+# Install the test package
+run npm install --dev
+```
+**Backend Testing**
+To run test in the backend
+```bash
+# Navigate to the backend
+cd backend
+
+# Run the test
+npm test
+```
+
+**Frontend Installation**
+```bash
+# Navigate to the frontend
+cd frontend
+# Install the test package
+run npm install --dev
+```
+**Frontend Testing**
+To run test in the frontend
+```bash
+# Navigate to the frontend
+cd frontend
+
+# Run the test
+npm test
+```
