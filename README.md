@@ -71,7 +71,7 @@ Ensure your .env file is created in the /backend directory before starting the s
 # Navigate to the backend
 cd backend
 # Install the test package
-run npm install --dev #Running npm install earlier should have already installed these, but incase it didn't, you can run this.
+run npm install --include=dev #Running npm install earlier should have already installed these, but incase it didn't, you can run this.
 ```
 **Backend Testing**
 To run test in the backend
@@ -88,7 +88,7 @@ npm test
 # Navigate to the frontend
 cd frontend
 # Install the test package
-run npm install --dev
+run npm install --include=dev
 ```
 **Frontend Testing**
 To run test in the frontend
