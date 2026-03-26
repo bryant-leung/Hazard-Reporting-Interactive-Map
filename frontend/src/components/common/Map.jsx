@@ -77,7 +77,7 @@ const MapComponent = ({ selectedId }) => {
             radius: 40,
             blur: 25,
             max: 5,
-            minOpacity: 0.5,
+            minOpacity: 0.4,
             gradient: {
                 0.0: 'blue',
                 0.4: 'cyan',

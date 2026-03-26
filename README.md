@@ -40,7 +40,10 @@ You will need **two terminals** running simultaneously to start the full stack.
 cd backend
 
 # Install necessary dependencies
-npm install express pg cors dotenv bcryptjs multer jsonwebtoken
+npm install #This should work, in case it doesnt try 
+
+npm install express pg cors dotenv bcryptjs multer jsonwebtoken 
+
 
 # Start the Node.js server
 node server.js
@@ -68,7 +71,7 @@ Ensure your .env file is created in the /backend directory before starting the s
 # Navigate to the backend
 cd backend
 # Install the test package
-run npm install --dev
+run npm install --dev #Running npm install earlier should have already installed these, but incase it didn't, you can run this.
 ```
 **Backend Testing**
 To run test in the backend
