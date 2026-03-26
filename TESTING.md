@@ -199,3 +199,11 @@ Database testing:
             We expected the voted table to record which user upvoted which message.
             This matched what we observed. (See ![Database Voted](testing_evidence\database_voted.png) )
 
+
+Unit testing:
+    For the backend unit testing we wrote a script which takes every database connection from the db.js, mocks the database using jest and simulates database responses. We then used supertest to simulate HTTP requests to the API calls in server.js to test for correct HTTP responses from valid and invalid calls.
+
+    For the frontend unit tests, it was a similar process, but instead we were testing for features being present on the web page.
+
+    Both of these testing programs currently result in all tests passing. (Minor error due to there being a pool command within the backend tests, but these don't reflect on the functionality of the backend)
+
