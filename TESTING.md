@@ -42,10 +42,10 @@ Map testing:
     We tested the map functionality in 5 different ways:
         Zoom in:
             We expected that clicking the zoom in control would increase the map zoom level and show a more detailed view of the area.
-            This is what we observed. (See ![Map Zoom In](testing_evidence\map_zoom_in.png) )
+            This matched what we observed. (See ![Map Zoom In](testing_evidence\map_zoom_in.png) )
         Zoom out:
             We expected that clicking the zoom out control would decrease the map zoom level and show a wider area, and that when zooming out hazard pins disappeared so the map doesn't become cluttered.
-            This is what we observed. (See ![Map Zoom Out](testing_evidence\map_zoom_out.png) )
+            This matched what we observed. (See ![Map Zoom Out](testing_evidence\map_zoom_out.png) )
         Nearby hazards section:
             We expected that the nearby hazards section below the map would display hazards geographically close to the user's current location.
             This is what we observed when viewing the section while logged in. (See ![Nearby Hazards](testing_evidence\nearby_hazards_section.png) )
@@ -67,6 +67,7 @@ Report hazard page testing:
         Missing latitude/longitude:
             We expected these to only allow us to enter numbers between -90 and 90 and that if we tried to submit the report without entering these, we would get asked to fill in the field.
             This was not the case, as we could input letters into the field, but it did still fail if we had no lat/long.
+            This would then break the map generation, as it caused issues with leaflet.
             This has since been fixed. (See ![Report Lat/Long](testing_evidence\report_hazard_latlong.png) )
 
 Heatmap testing:
