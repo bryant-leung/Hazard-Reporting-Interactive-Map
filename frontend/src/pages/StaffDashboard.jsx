@@ -143,19 +143,19 @@ function StaffDashboard() {
             <label className="form-label">Severity</label>
             <select className="form-select" value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
               <option value="All">All Levels</option>
-              <option value="1">1 - Mild</option>
-              <option value="2">2 - Major</option>
+              <option value="1">1 - Mild Inconvenience</option>
+              <option value="2">2 - Major Inconvenience</option>
               <option value="3">3 - Potentially Dangerous</option>
               <option value="4">4 - Dangerous</option>
               <option value="5">5 - Incredibly Dangerous</option>
             </select>
           </div>
           <div className="form-group" style={{ minWidth: '180px', marginBottom: 0 }}>
-            <label className="form-label">Sort Severity</label>
+            <label className="form-label">Sort By</label>
             <select className="form-select" value={sortSeverity} onChange={(e) => setSortSeverity(e.target.value)}>
               <option value="None">Default</option>
-              <option value="HighToLow">Highest to Lowest</option>
-              <option value="LowToHigh">Lowest to Highest</option>
+              <option value="HighToLow">Severity - Highest to Lowest</option>
+              <option value="LowToHigh">Severity - Lowest to Highest</option>
             </select>
           </div>
         </div>

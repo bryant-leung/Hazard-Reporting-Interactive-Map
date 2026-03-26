@@ -93,11 +93,11 @@ function ReportHazardPage() {
           <div style={{ display: 'flex', gap: '12px' }}>
             <div className="form-group" style={{ flex: 1 }}>
               <label className="form-label">Latitude</label>
-              <input className="form-input" type="text" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="e.g. 52.4862" required />
+              <input className="form-input" type="number" step="any" min="-90" max="90" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="e.g. 52.4862" required />
             </div>
             <div className="form-group" style={{ flex: 1 }}>
               <label className="form-label">Longitude</label>
-              <input className="form-input" type="text" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="e.g. -1.8904" required />
+              <input className="form-input" type="number" step="any" min="-180" max="180" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="e.g. -1.8904" required />
             </div>
           </div>
 
