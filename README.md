@@ -26,8 +26,8 @@ CivicTrace uses **Supabase** for cloud storage.
 Create a file named `.env` in the `/backend` directory and add the following:
 
 ```properties
-DATABASE_URL=postgresql://postgres.yoznamxexwdohzfwzdkl:futureframeworks123%21@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
-JWT_SECRET=futureframeworks
+DATABASE_URL=postgresql://<user>:<password>@<host>:5432/postgres
+JWT_SECRET=<any-long-random-string>
 NODE_PORT=3000
 ```
 
@@ -104,7 +104,7 @@ Use the following credentials to access the different user interfaces:
 
 | User Role | Email | Password |
 | :--- | :--- | :--- |
-| **Resident** | `futureframeworkstest@gmail.com` | `futureframeworks` |
-| **Staff** | `staff@gmail.com` | `staffs` |
+| **Resident** | `<resident test email>` | `<password>` |
+| **Staff** | `<staff test email>` | `<password>` |
 
 ---

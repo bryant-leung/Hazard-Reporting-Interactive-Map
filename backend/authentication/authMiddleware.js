@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        // Verify the token using secret futureframeworks
+        // Verify the token using the JWT_SECRET from .env
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; 
         next(); // Move on to the actual database query
